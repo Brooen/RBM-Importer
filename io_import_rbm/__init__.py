@@ -28,7 +28,12 @@ RENDER_BLOCK_TYPES = {
     0x5b2003f6: ("Window", "import_window"),
     0xdb948bf1: ("CarLight", "import_car_light"),
     0xa5d24ccd: ("BavariumShield", "import_bavarium_shield"),
-    0xf99c72a1: ("WaterHull", "import_water_hull")
+    0xf99c72a1: ("WaterHull", "import_water_hull"),
+    0xa7583b2b: ("General6", "import_general6"),
+    0xb1f9133d: ("FoliageBark2", "import_foliage_bark2"),
+    0x04894ecd: ("General3", "import_general3"),
+    0xc7021ee3: ("Layered", "import_layered"),
+    0x3b630e6d: ("Landmark", "import_landmark")
 }
 
 # Utility function to read 32-bit unsigned integers from binary files
@@ -38,6 +43,8 @@ def read_u32(file):
 # Main import function
 def import_model(filepath):
     imported_objects = []
+    unrecognized_blocks_path = os.path.join(addon_path, "unrecognized_blocks.txt")  # Path for log file
+    
     try:
         with open(filepath, 'rb') as file:
             file.seek(45)
@@ -52,7 +59,10 @@ def import_model(filepath):
                 if block_name:
                     import_block(filepath, file, import_module_name, imported_objects)
                 else:
-                    print(f"Render Block {i+1}: Unknown Type (0x{renderblocktype:X}). Skipping.")
+                    print(f"Render Block {i+1}: Unknown Type (0x{renderblocktype:X}). Logging and Skipping.")
+                    # Log the filepath to the text file
+                    with open(unrecognized_blocks_path, 'a') as log_file:
+                        log_file.write(f"{filepath}\n")
 
             combine_imported_objects(imported_objects)
 
