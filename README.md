@@ -7,3 +7,8 @@ A tool that imports Just Cause 3's RBM files into Blender
 - Window
 - BavariumShield
 - WaterHull
+- General6
+- FoliageBark2
+- General3
+- Layered
+- Landmark
