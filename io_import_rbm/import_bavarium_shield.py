@@ -92,7 +92,7 @@ def process_block(filepath, file, imported_objects):
         y = read_float(file)
         z = read_float(file)
         vertices.append((x, y, z))
-        uv1 = (read_float(file), read_float(file))
+        uv1 = (read_float(file), -read_float(file))
         
         normal_hex = read_u32(file)
         tangent_hex = read_u32(file)

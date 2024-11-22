@@ -136,8 +136,8 @@ def process_block(filepath, file, imported_objects):
 
     # Read vertdata blocks with float-based UVs, normal, and tangent
     for i in range(vertcount2):
-        uv1 = (read_float(file), read_float(file))
-        uv2 = (read_float(file), read_float(file))
+        uv1 = (read_float(file), -read_float(file))
+        uv2 = (read_float(file), -read_float(file))
         normal_hex = read_u32(file)
         tangent_hex = read_u32(file)
         

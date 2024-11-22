@@ -15,6 +15,8 @@ import bpy
 from bpy.props import CollectionProperty, StringProperty
 from bpy.types import Operator
 from importlib import reload
+from bpy.props import StringProperty
+from bpy.types import AddonPreferences
 
 # Set the importer path to the same directory as the addon
 addon_path = os.path.dirname(__file__)
@@ -120,13 +122,35 @@ class RBMImportOperator(Operator):
 def menu_func_import(self, context):
     self.layout.operator(RBMImportOperator.bl_idname, text="RBM Model (.rbm)")
 
-# Register and unregister functions
+class RBMImporterPreferences(AddonPreferences):
+    bl_idname = __name__
+
+    texture_base_path: StringProperty(
+        name="Texture Base Path",
+        description="Base path for textures used in materials",
+        default="",
+        subtype='DIR_PATH'
+    )
+
+    texture_extension: StringProperty(
+        name="Texture Extension",
+        description="File extension for texture files",
+        default=".png"
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "texture_base_path")
+        layout.prop(self, "texture_extension")
+
 def register():
     bpy.utils.register_class(RBMImportOperator)
+    bpy.utils.register_class(RBMImporterPreferences)  # Add preferences class
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
 def unregister():
     bpy.utils.unregister_class(RBMImportOperator)
+    bpy.utils.unregister_class(RBMImporterPreferences)  # Remove preferences class
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
 if __name__ == "__main__":
