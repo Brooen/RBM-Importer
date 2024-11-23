@@ -297,11 +297,10 @@ def process_block(filepath, file, imported_objects):
 
     # Define texture settings (matching Blender's 1-based indexing)
     TEXTURE_SETTINGS = {
-        "uv1": [1, 2, 3, 4],
-        "uv2": [7, 8, 9, 10, 11],
-        #"uv3": [0],  # Optional if needed
-        "srgb": [1, 3, 8, 10],
-        "non_color": [2, 4, 7, 9, 11],
+        "uv1": [1, 2, 3, 4, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20],
+        "uv2": [7, 12],
+        "srgb": [1, 3, 8, 10, 12, 14, 16, 19],
+        "non_color": [2, 4, 7, 9, 11, 13, 15, 17, 18, 20],
     }
 
     input_index = 83  # Start at input index 83 to skip the first 80 inputs this number is booleans+floats
@@ -361,9 +360,6 @@ def process_block(filepath, file, imported_objects):
         elif texture_number in TEXTURE_SETTINGS.get("uv2", []):
             uv_node.uv_map = "UVMap_2"
             print(f"Texture {texture_number}: Assigned to UV2")
-        elif texture_number in TEXTURE_SETTINGS.get("uv3", []):
-            uv_node.uv_map = "UVMap_3"
-            print(f"Texture {texture_number}: Assigned to UV3")
         else:
             uv_node.uv_map = "UVMap_1"  # Default UV map
             print(f"Texture {texture_number}: Defaulted to UV1")

@@ -38,12 +38,31 @@ RENDER_BLOCK_TYPES = {
     0x3b630e6d: ("Landmark", "import_landmark")
 }
 
+def ensure_shaders_nodegroup():
+    """Ensure the '.Shaders' node group is present, appending it if necessary."""
+    shaders_node_name = ".Shaders"
+    if shaders_node_name not in bpy.data.node_groups:
+        # Path to shaders.blend in the addon directory
+        shaders_blend_path = os.path.join(addon_path, "shaders.blend")
+        try:
+            with bpy.data.libraries.load(shaders_blend_path, link=False) as (data_from, data_to):
+                if shaders_node_name in data_from.node_groups:
+                    data_to.node_groups.append(shaders_node_name)
+                    print(f"'{shaders_node_name}' node group appended from {shaders_blend_path}")
+                else:
+                    print(f"Node group '{shaders_node_name}' not found in {shaders_blend_path}")
+        except Exception as e:
+            print(f"Error appending '{shaders_node_name}': {e}")
+    else:
+        print(f"'{shaders_node_name}' node group already exists.")
+        
 # Utility function to read 32-bit unsigned integers from binary files
 def read_u32(file):
     return int.from_bytes(file.read(4), 'little')
 
 # Main import function
 def import_model(filepath):
+    ensure_shaders_nodegroup()  # Ensure the .Shaders node group is present
     imported_objects = []
     unrecognized_blocks_path = os.path.join(addon_path, "unrecognized_blocks.txt")  # Path for log file
     
