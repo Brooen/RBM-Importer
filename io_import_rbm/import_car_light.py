@@ -75,8 +75,7 @@ def process_block(filepath, file, imported_objects):
     
     # Define the material name based on the available file paths
     material_name = clean_material_name(os.path.basename(filepaths[0]))
-    if len(filepaths) > 6 and filepaths[6]:
-        material_name += f" - {clean_material_name(os.path.basename(filepaths[6]))}"
+    material_name += f" - light"
     print(f"Material Name: {material_name}")
     
     # Skip 16 bytes
