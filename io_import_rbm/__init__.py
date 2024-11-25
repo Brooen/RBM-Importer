@@ -17,6 +17,7 @@ from bpy.types import Operator
 from importlib import reload
 from bpy.props import StringProperty
 from bpy.types import AddonPreferences
+from .io_mdic import process_mdic
 
 # Set the importer path to the same directory as the addon
 addon_path = os.path.dirname(__file__)
@@ -151,6 +152,33 @@ class RBMImportOperator(Operator):
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+        
+class MDICImportOperator(Operator):
+    """Import MDIC Files"""
+    bl_idname = "import_scene.mdic"
+    bl_label = "Import MDIC Files"
+    bl_description = "Import MDIC files with associated models"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    files: CollectionProperty(type=bpy.types.PropertyGroup)
+    directory: StringProperty(subtype='DIR_PATH')
+    filter_glob: StringProperty(default="*.mdic", options={'HIDDEN'})
+
+    def execute(self, context):
+        preferences = bpy.context.preferences.addons[__name__].preferences
+        base_path = preferences.extraction_base_path  # Shared base path
+        
+        mdic_file_paths = [os.path.join(self.directory, file.name) for file in self.files]
+        for mdic_file_path in mdic_file_paths:
+            process_mdic(mdic_file_path)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+def menu_func_import_mdic(self, context):
+    self.layout.operator(MDICImportOperator.bl_idname, text="MDIC Files (.mdic)")
 
 # Register function to add the operator to the import menu
 def menu_func_import(self, context):
@@ -181,11 +209,15 @@ def register():
     bpy.utils.register_class(RBMImportOperator)
     bpy.utils.register_class(RBMImporterPreferences)  # Add preferences class
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    bpy.utils.register_class(MDICImportOperator)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import_mdic)
 
 def unregister():
     bpy.utils.unregister_class(RBMImportOperator)
     bpy.utils.unregister_class(RBMImporterPreferences)  # Remove preferences class
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.utils.register_class(MDICImportOperator)
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import_mdic)
 
 if __name__ == "__main__":
     register()
