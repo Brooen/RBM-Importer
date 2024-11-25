@@ -131,6 +131,8 @@ def combine_imported_objects(objects):
     
     # Rotate the combined object by -90 degrees on the X-axis
     bpy.context.object.rotation_euler[0] = 1.5708  # 90 degrees in radians
+    
+    
 
 # Operator to handle the import functionality
 class RBMImportOperator(Operator):
@@ -171,12 +173,13 @@ class MDICImportOperator(Operator):
         mdic_file_paths = [os.path.join(self.directory, file.name) for file in self.files]
         for mdic_file_path in mdic_file_paths:
             process_mdic(mdic_file_path)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
-
+        
 def menu_func_import_mdic(self, context):
     self.layout.operator(MDICImportOperator.bl_idname, text="MDIC Files (.mdic)")
 
