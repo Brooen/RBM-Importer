@@ -59,9 +59,20 @@ def ensure_shaders_nodegroup():
 # Utility function to read 32-bit unsigned integers from binary files
 def read_u32(file):
     return int.from_bytes(file.read(4), 'little')
+    
+# Function to compute the relative filepath and set it as a custom property
+def set_relative_filepath(obj, filepath, base_path):
+    if base_path in filepath:
+        relative_path = filepath.replace(base_path, "").lstrip("\\/")
+        obj["filepath"] = relative_path
+        print(f"Set relative filepath: {relative_path}")
+    else:
+        print(f"Base path not found in {filepath}. Filepath not set.")
 
 # Main import function
 def import_model(filepath):
+    preferences = bpy.context.preferences.addons[__name__].preferences
+    extraction_base_path = preferences.extraction_base_path
     ensure_shaders_nodegroup()  # Ensure the .Shaders node group is present
     imported_objects = []
     unrecognized_blocks_path = os.path.join(addon_path, "unrecognized_blocks.txt")  # Path for log file
@@ -86,6 +97,10 @@ def import_model(filepath):
                         log_file.write(f"{filepath}\n")
 
             combine_imported_objects(imported_objects)
+
+            # Set the relative file path for imported objects
+            for obj in imported_objects:
+                set_relative_filepath(obj, filepath, extraction_base_path)
 
     except Exception as e:
         print(f"Error importing model: {e}")
@@ -144,9 +159,9 @@ def menu_func_import(self, context):
 class RBMImporterPreferences(AddonPreferences):
     bl_idname = __name__
 
-    texture_base_path: StringProperty(
-        name="Texture Base Path",
-        description="Base path for textures used in materials",
+    extraction_base_path: StringProperty(
+        name="Extraction Base Path",
+        description="Base path for extracted files (models and textures)",
         default="",
         subtype='DIR_PATH'
     )
@@ -159,7 +174,7 @@ class RBMImporterPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "texture_base_path")
+        layout.prop(self, "extraction_base_path")
         layout.prop(self, "texture_extension")
 
 def register():

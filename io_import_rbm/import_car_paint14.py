@@ -233,7 +233,7 @@ def process_block(filepath, file, imported_objects):
                 
     # Set floats
     for i, float_value in enumerate(material_data[:62]):
-        input_index = i + 11
+        input_index = i + 12
         if input_index < len(shader_node.inputs):
             if shader_node.inputs[input_index].type == "VALUE":
                 shader_node.inputs[input_index].default_value = float_value
@@ -243,10 +243,10 @@ def process_block(filepath, file, imported_objects):
     # Fetch texture base path and extension from addon preferences
     addon_name = "io_import_rbm"  # Use the name from bl_info
     addon_prefs = bpy.context.preferences.addons[addon_name].preferences
-    texture_base_path = addon_prefs.texture_base_path
+    extraction_base_path = addon_prefs.extraction_base_path
     texture_extension = addon_prefs.texture_extension
 
-    print(f"Texture Base Path: {texture_base_path}")
+    print(f"Texture Base Path: {extraction_base_path}")
     print(f"Texture Extension: {texture_extension}")
 
     # Define texture settings (matching Blender's 1-based indexing)
@@ -258,7 +258,7 @@ def process_block(filepath, file, imported_objects):
         "non_color": [2, 3, 4, 5, 7, 9, 10],
     }
 
-    input_index = 83  # Start at input index 83 to skip the first 80 inputs this number is booleans+floats
+    input_index = 84  # Start at input index 83 to skip the first 80 inputs this number is booleans+floats
 
     for texture_number, texture_path in enumerate(filepaths, start=1):  # Start at 1 for Blender indexing
         # Skip empty file paths
@@ -268,7 +268,7 @@ def process_block(filepath, file, imported_objects):
             continue
 
         # Construct the full file path
-        texture_full_path = os.path.join(texture_base_path, texture_path.replace(".ddsc", texture_extension))
+        texture_full_path = os.path.join(extraction_base_path, texture_path.replace(".ddsc", texture_extension))
         texture_name = os.path.basename(texture_full_path)  # Extract the file name
 
         print(f"Processing Texture {texture_number} at: {texture_full_path}")
