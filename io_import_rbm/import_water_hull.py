@@ -2,32 +2,7 @@ import struct
 import math
 import bpy
 import os
-
-
-# Helper functions for reading various data types
-def read_u16(file):
-    return int.from_bytes(file.read(2), 'little')
-
-def read_s16(file):
-    return int.from_bytes(file.read(2), 'little', signed=True)
-
-def read_u32(file):
-    return int.from_bytes(file.read(4), 'little')
-
-def read_float(file):
-    return struct.unpack('f', file.read(4))[0]
-
-def read_string(file, length):
-    return file.read(length).decode('utf-8')
-
-# Function to convert a hex value to float using IEEE-754 format
-def hex_to_float(hex_value):
-    packed = struct.pack('>I', hex_value)
-    return struct.unpack('>f', packed)[0]
-    
-def clean_filename(filename):
-    # Remove `_lod#` from filename
-    return filename.split('_lod')[0]
+from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing WaterHull block from {filepath}")

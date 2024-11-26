@@ -2,60 +2,7 @@ import struct
 import math
 import bpy
 import os
-
-
-
-# Helper functions for reading various data types
-def read_u16(file):
-    return int.from_bytes(file.read(2), 'little')
-
-def read_s16(file):
-    return int.from_bytes(file.read(2), 'little', signed=True)
-
-def read_u32(file):
-    return int.from_bytes(file.read(4), 'little')
-
-def read_float(file):
-    return struct.unpack('f', file.read(4))[0]
-
-def read_string(file, length):
-    return file.read(length).decode('utf-8')
-
-# Function to convert a hex value to float using IEEE-754 format
-def hex_to_float(hex_value):
-    packed = struct.pack('>I', hex_value)
-    return struct.unpack('>f', packed)[0]
-
-# Function to decompress normal/tangent data
-def decompress_normal(hex_value):
-    f = hex_to_float(hex_value)
-    x = ((f / 1.0) % 1.0) * 2.0 - 1.0
-    y = ((f / 256.0) % 1.0) * 2.0 - 1.0
-    z = ((f / 65536.0) % 1.0) * 2.0 - 1.0
-    w = 1.0 if f >= 0 else -1.0
-    return x, y, z, w
-
-# Function to process R16G16B16_SNORM format
-def process_r16g16b16_snorm(file):
-    r = read_s16(file) / 32767.0
-    g = read_s16(file) / 32767.0
-    b = read_s16(file) / 32767.0
-    return r, g, b
-
-# Function to process R16G16_UNORM format
-def process_r16g16_unorm(file):
-    r = read_u16(file) / 65535.0
-    g = read_u16(file) / 65535.0
-    return r, g
-
-def clean_filename(filename):
-    # Remove `_lod#` from filename
-    return filename.split('_lod')[0]
-
-def clean_material_name(filepath):
-    # Remove `_dif` from the end and strip file extension
-    base_name = os.path.splitext(filepath)[0]  # Remove extension
-    return base_name.replace('_dif', '')
+from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename, clean_material_name, process_r16g16_unorm, process_r16g16b16_snorm
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing GeneralMK3 block from {filepath}")
