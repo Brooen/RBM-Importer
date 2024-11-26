@@ -5,6 +5,7 @@ from mathutils import Matrix, Euler
 import numpy as np
 import math
 import struct
+from functions import apply_transformations
 
 def get_base_path():
     preferences = bpy.context.preferences.addons["io_import_rbm"].preferences
@@ -75,42 +76,6 @@ def import_model(path, matrix_values, collection):
             collection.objects.link(obj)
             bpy.context.scene.collection.objects.unlink(obj)
             break
-
-
-def apply_transformations(obj, matrix_values):
-    try:
-        # Convert the matrix values to a NumPy array and reshape
-        matrix = np.array(matrix_values).reshape((4, 4))
-
-        # Rotation matrix to Euler
-        rotation_matrix_np = matrix[:3, :3]
-        rot_mat = rotation_matrix_np
-
-        # Game rotation matrix to Euler
-        # Want CX, need [0, 2] not [2, 0]
-        ax = rot_mat[0, 0]
-        bx = rot_mat[0, 1]
-        cx = rot_mat[0, 2]
-        cy = rot_mat[1, 2]
-        cz = rot_mat[2, 2]
-
-        theta = -math.asin(cx)
-        cos_theta = math.cos(theta)
-        psi = math.atan2(cy / cos_theta, cz / cos_theta)
-        phi = math.atan2(bx / cos_theta, ax / cos_theta)
-
-        rotation_euler = Euler((psi, theta, phi), 'XYZ')
-        
-
-        # Location vector adjustments
-        location = [matrix[3, 0], matrix[3, 1], matrix[3, 2]]
-
-        # Apply transformations to object
-        obj.location = location
-        obj.rotation_euler = rotation_euler
-    except Exception as e:
-        print(f"Error applying transformation: {e}")
-
 
 def process_mdic(mdic_file_path):
     # Derive a collection name from the MDIC file name
