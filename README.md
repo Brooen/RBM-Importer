@@ -13,7 +13,7 @@ A tool that imports Just Cause 3's RBM files into Blender
 - Layered
 - Landmark
 ## MDIC Importing
-Supports all MDIC files, MDIC files store static enviroment models. (currently they need to be rotate 90 degrees on the X axis centered around the 3D cursor)
+Supports all MDIC files, MDIC files store static enviroment models. (Currently they need to be rotated 90 local degrees on the X axis centered around the 3D cursor)
 ## BLO Importing
 (NOT YET IMPLEMENTED)
 Supports all BLO files, BLO files store props, lights, and decals.
