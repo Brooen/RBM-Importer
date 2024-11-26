@@ -2,7 +2,9 @@ import struct
 import math
 import bpy
 import os
-from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename, clean_material_name, process_r16g16_unorm, process_r16g16b16_snorm
+from functions import *
+
+#This RenderBlock needs: Materials, UV extent/transforms, Scale, Flags
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing GeneralMK3 block from {filepath}")
@@ -10,10 +12,9 @@ def process_block(filepath, file, imported_objects):
     # Set up the model name and clean it
     model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
 
-    # Skip 73 bytes
+    # Skip 205 bytes
     file.seek(file.tell() + 205)
-
-    
+  
     # Read u32 filepath slot count
     filepath_slot_count = read_u32(file)
     print(f"Filepath Slot Count: {filepath_slot_count}")

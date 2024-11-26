@@ -2,7 +2,7 @@ import struct
 import math
 import bpy
 import os
-from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename, clean_material_name, process_r16g16_unorm, process_r16g16b16_snorm, transform_uvs
+from functions import *
 
 # Flag definitions
 BACKFACE_CULLING           = 0x1
@@ -25,14 +25,16 @@ def process_block(filepath, file, imported_objects):
     # Set up the model name and clean it
     model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
 
-    # Skip 73 bytes
+    # Skip 41 bytes
     file.seek(file.tell() + 41)
     
     # Read scale factor and UV extents
     scale = read_float(file)
     UV1Extent = (read_float(file), read_float(file))
     UV2Extent = (read_float(file), read_float(file))
-    file.seek(file.tell() + 12)  # Skip padding
+    
+    # Skip 12 bytes
+    file.seek(file.tell() + 12)
 
     print(f"Scale Factor: {scale}")
     print(f"UV1Extent: {UV1Extent}")
@@ -42,7 +44,7 @@ def process_block(filepath, file, imported_objects):
     flags = read_u32(file)
     print(f"Flags: {flags} ({bin(flags)})")
     
-    # After reading the flags, skip 16 bytes
+    # Skip 28 bytes
     file.seek(file.tell() + 28)
 
     # Read 70 floats for material data
@@ -218,13 +220,13 @@ def process_block(filepath, file, imported_objects):
 
     # Define texture settings (matching Blender's 1-based indexing)
     TEXTURE_SETTINGS = {
-        "uv1": [1, 2, 3, 4, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20],
-        "uv2": [7, 12],
+        "uv1": [1, 2, 3, 4, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20], #base, layered, decal(properties), damage  
+        "uv2": [7, 12], #mask, decal(color)
         "srgb": [1, 3, 8, 10, 12, 14, 16, 19],
         "non_color": [2, 4, 7, 9, 11, 13, 15, 17, 18, 20],
     }
 
-    input_index = 83  # Start at input index 83 to skip the first 80 inputs this number is booleans+floats
+    input_index = 83  # Start at input index 83 to skip the first 83 inputs (this number is booleans+floats)
 
     for texture_number, texture_path in enumerate(filepaths, start=1):  # Start at 1 for Blender indexing
         # Skip empty file paths
@@ -263,7 +265,7 @@ def process_block(filepath, file, imported_objects):
         # Create texture node
         tex_node = nodes.new("ShaderNodeTexImage")
         tex_node.image = image
-        tex_node.location = (-300, -100 * (input_index - 80))  # Subtract 83 for location offset
+        tex_node.location = (-300, -100 * (input_index - 80))  # Subtract 80 for location offset
 
         # Set color space
         if texture_number in TEXTURE_SETTINGS.get("srgb", []):
@@ -285,7 +287,7 @@ def process_block(filepath, file, imported_objects):
             uv_node.uv_map = "UVMap_1"  # Default UV map
             print(f"Texture {texture_number}: Defaulted to UV1")
 
-        uv_node.location = (-500, -100 * (input_index - 80))  # Subtract 83 for location offset
+        uv_node.location = (-500, -100 * (input_index - 80))  # Subtract 80 for location offset
 
         # Connect UV map to texture
         links.new(uv_node.outputs["UV"], tex_node.inputs["Vector"])

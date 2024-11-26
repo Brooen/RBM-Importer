@@ -2,7 +2,9 @@ import struct
 import math
 import bpy
 import os
-from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename, clean_material_name
+from functions import *
+
+#This RenderBlock needs: Materials, Flags
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing CarLight block from {filepath}")
@@ -10,15 +12,14 @@ def process_block(filepath, file, imported_objects):
     # Set up the model name and clean it
     model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
 
-    # Skip 73 bytes
+    # Skip 5 bytes
     file.seek(file.tell() + 5)
-    
 
-
-    # Read 70 floats for material data
+    # Read 14 floats for material data
     material_data = [read_float(file) for _ in range(14)]
     print("Material Data:", material_data)
     
+    # Skip 1024 bytes (Control Point Remap Table)
     file.seek(file.tell() + 1024)
     
     # Read u32 filepath slot count
@@ -64,8 +65,8 @@ def process_block(filepath, file, imported_objects):
     
     # Read vertdata blocks with AmfFormat_R16G16_UNORM for UVs
     for i in range(vertcount2):
-        uv1 = (read_float(file), read_float(file))
-        uv2 = (read_float(file), read_float(file))
+        uv1 = (read_float(file), -read_float(file))
+        uv2 = (read_float(file), -read_float(file))
         normal_hex = read_u32(file)
         tangent_hex = read_u32(file)
         
@@ -107,6 +108,12 @@ def process_block(filepath, file, imported_objects):
     for i, loop in enumerate(mesh.loops):
         uv_layer1.data[loop.index].uv = uv1_coords[loop.vertex_index]
         uv_layer2.data[loop.index].uv = uv2_coords[loop.vertex_index]
+    
+    # Add "Smooth by Angle" modifier
+    modifier = mesh_obj.modifiers.new(name="Smooth by Angle", type='EDGE_SPLIT')
+    modifier.split_angle = math.radians(30)  # Angle in radians
+    modifier.use_edge_angle = True
+    modifier.use_edge_sharp = False
     
     # Assign smooth shading
     for poly in mesh.polygons:

@@ -2,12 +2,13 @@ import struct
 import math
 import bpy
 import os
-from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename, clean_material_name
+from functions import *
 
 # Flag definitions
 SUPPORT_DECALS             = 0x1
 SUPPORT_DAMAGE_BLEND       = 0x2
 SUPPORT_DIRT               = 0x4
+SUPPORT_PALLETE            = 0x8
 SUPPORT_SOFT_TINT          = 0x10
 SUPPORT_LAYERED            = 0x20
 SUPPORT_OVERLAY            = 0x40
@@ -23,28 +24,27 @@ def process_block(filepath, file, imported_objects):
     # Set up the model name and clean it
     model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
 
-    # Skip 73 bytes
+    # Skip 1 byte
     file.seek(file.tell() + 1)
     
     # Read flags
     flags = read_u32(file)
     print(f"Flags: {flags} ({bin(flags)})")
     
-    # After reading the flags, skip 16 bytes
+    # Skip 4 bytes
     file.seek(file.tell() + 4)
 
-    # Read 70 floats for material data
+    # Read 98 floats for material data
     material_data = [read_float(file) for _ in range(98)]
     print("Material Data:", material_data)
     
+    # Skip 1024 bytes (Control Point Remap Table)
     file.seek(file.tell() + 1024)
     
     # Read u32 filepath slot count
     filepath_slot_count = read_u32(file)
     print(f"Filepath Slot Count: {filepath_slot_count}")
- 
-
-    
+   
     # Read each filepath
     filepaths = []
     for i in range(filepath_slot_count):
@@ -90,7 +90,6 @@ def process_block(filepath, file, imported_objects):
         if flags & IS_DEFORM:
             file.seek(12, 1)  # Skip 12 bytes
 
-    # Continue with the rest of your code
     # Vertex data section
     vertcount2 = read_u32(file)
     print(f"VertData Count: {vertcount2}")
@@ -121,10 +120,8 @@ def process_block(filepath, file, imported_objects):
         
         uv3_coords = []
         for _ in range(uv3_count):
-            uv3 = (read_float(file), read_float(file))
+            uv3 = (read_float(file), -read_float(file))
             uv3_coords.append(uv3)
-        
-        #print("UV3 Coordinates:", uv3_coords)
     
     # Read face count
     face_count = read_u32(file)
@@ -158,6 +155,13 @@ def process_block(filepath, file, imported_objects):
         uv_layer2.data[loop.index].uv = uv2_coords[loop.vertex_index]
         if 'uv_layer3' in locals():
             uv_layer3.data[loop.index].uv = uv3_coords[loop.vertex_index]
+            
+    # Add "Smooth by Angle" modifier
+    modifier = mesh_obj.modifiers.new(name="Smooth by Angle", type='EDGE_SPLIT')
+    modifier.split_angle = math.radians(30)  # Angle in radians
+    modifier.use_edge_angle = True
+    modifier.use_edge_sharp = False
+    
     # Assign smooth shading
     for poly in mesh.polygons:
         poly.use_smooth = True
@@ -212,14 +216,14 @@ def process_block(filepath, file, imported_objects):
 
     # Define texture settings (matching Blender's 1-based indexing)
     TEXTURE_SETTINGS = {
-        "uv1": [1, 2, 3, 4, 5, 6, 7],
-        "uv2": [8, 9, 10],
-        "uv3": [11, 12],  # Optional if needed
+        "uv1": [1, 2, 3, 4, 5, 6, 7], #base, damage, dirt
+        "uv2": [8, 9, 10], #decal
+        "uv3": [11, 12], #layered, overlay
         "srgb": [1, 6, 8, 11, 12],
         "non_color": [2, 3, 4, 5, 7, 9, 10],
     }
 
-    input_index = 84  # Start at input index 83 to skip the first 80 inputs this number is booleans+floats
+    input_index = 84  # Start at input index 84 to skip the first 84 inputs (this number is booleans+floats)
 
     for texture_number, texture_path in enumerate(filepaths, start=1):  # Start at 1 for Blender indexing
         # Skip empty file paths
@@ -258,7 +262,7 @@ def process_block(filepath, file, imported_objects):
         # Create texture node
         tex_node = nodes.new("ShaderNodeTexImage")
         tex_node.image = image
-        tex_node.location = (-300, -100 * (input_index - 80))  # Subtract 83 for location offset
+        tex_node.location = (-300, -100 * (input_index - 80))  # Subtract 80 for location offset
 
         # Set color space
         if texture_number in TEXTURE_SETTINGS.get("srgb", []):
@@ -283,7 +287,7 @@ def process_block(filepath, file, imported_objects):
             uv_node.uv_map = "UVMap_1"  # Default UV map
             print(f"Texture {texture_number}: Defaulted to UV1")
 
-        uv_node.location = (-500, -100 * (input_index - 80))  # Subtract 83 for location offset
+        uv_node.location = (-500, -100 * (input_index - 80))  # Subtract 80 for location offset
 
         # Connect UV map to texture
         links.new(uv_node.outputs["UV"], tex_node.inputs["Vector"])

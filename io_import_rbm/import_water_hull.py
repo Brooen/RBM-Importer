@@ -2,7 +2,7 @@ import struct
 import math
 import bpy
 import os
-from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename
+from functions import *
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing WaterHull block from {filepath}")
@@ -10,7 +10,7 @@ def process_block(filepath, file, imported_objects):
     # Set up the model name and clean it
     model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
 
-    # Skip 73 bytes
+    # Skip 21 bytes
     file.seek(file.tell() + 21)
    
     # Define the material name based on the available file paths
@@ -50,6 +50,12 @@ def process_block(filepath, file, imported_objects):
     
     # Create the mesh from vertices and faces
     mesh.from_pydata(vertices, [], faces)
+    
+    # Add "Smooth by Angle" modifier
+    modifier = mesh_obj.modifiers.new(name="Smooth by Angle", type='EDGE_SPLIT')
+    modifier.split_angle = math.radians(30)  # Angle in radians
+    modifier.use_edge_angle = True
+    modifier.use_edge_sharp = False
     
     # Assign smooth shading
     for poly in mesh.polygons:

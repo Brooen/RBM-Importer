@@ -2,7 +2,9 @@ import struct
 import math
 import bpy
 import os
-from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename, clean_material_name
+from functions import *
+
+#This RenderBlock needs: Flags
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing Window block from {filepath}")
@@ -10,13 +12,14 @@ def process_block(filepath, file, imported_objects):
     # Set up the model name and clean it
     model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
 
-    # Skip 73 bytes
+    # Skip 1 byte
     file.seek(file.tell() + 1)
 
-    # Read 70 floats for material data
+    # Read 6 floats for material data
     material_data = [read_float(file) for _ in range(6)]
     print("Material Data:", material_data)
     
+    # Skip 16 bytes
     file.seek(file.tell() + 16)
     
     # Read u32 filepath slot count

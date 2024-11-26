@@ -1,6 +1,7 @@
 import os
+import struct
 
-# Helper functions for reading various data types
+# Helper functions for reading various binary data types
 def read_u16(file):
     return int.from_bytes(file.read(2), 'little')
 
@@ -16,6 +17,7 @@ def read_float(file):
 def read_string(file, length):
     return file.read(length).decode('utf-8')
 
+
 # Function to convert a hex value to float using IEEE-754 format
 def hex_to_float(hex_value):
     packed = struct.pack('>I', hex_value)
@@ -29,14 +31,14 @@ def decompress_normal(hex_value):
     z = ((f / 65536.0) % 1.0) * 2.0 - 1.0
     w = 1.0 if f >= 0 else -1.0
     return x, y, z, w
-
+    
+# Function to remove `_lod#` from filename
 def clean_filename(filename):
-    # Remove `_lod#` from filename
     return filename.split('_lod')[0]
 
+# Function to remove `_dif` from the end and strip file extension
 def clean_material_name(filepath):
-    # Remove `_dif` from the end and strip file extension
-    base_name = os.path.splitext(filepath)[0]  # Remove extension
+    base_name = os.path.splitext(filepath)[0] 
     return base_name.replace('_dif', '')
     
 # Function to process R16G16B16_SNORM format
@@ -52,7 +54,7 @@ def process_r16g16_unorm(file):
     g = read_u16(file) / 65535.0
     return r, g
     
-# Transform UVs
+# Function to transform UVs
 def transform_uvs(uvs, uv_extent):
     transformed_uvs = []
     u_extent, v_extent = uv_extent

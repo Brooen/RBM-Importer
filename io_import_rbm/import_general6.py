@@ -2,7 +2,7 @@ import struct
 import math
 import bpy
 import os
-from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename, clean_material_name, process_r16g16_unorm, process_r16g16b16_snorm, transform_uvs
+from functions import *
 
 # Flag definitions
 BACKFACE_CULLING           = 0x1
@@ -182,14 +182,13 @@ def process_block(filepath, file, imported_objects):
 
     # Define texture settings (matching Blender's 1-based indexing)
     TEXTURE_SETTINGS = {
-        "uv1": [1, 2, 3,],
-        "uv2": [4],
-        #"uv3": [0],  # Optional if needed
+        "uv1": [1, 2, 3,], #base
+        "uv2": [4], #ao
         "srgb": [1],
         "non_color": [2, 3, 4],
     }
 
-    input_index = 3  # Start at input index 83 to skip the first 80 inputs this number is booleans+floats
+    input_index = 3  # Start at input index 3 to skip the first 3 inputs (this number is booleans)
 
     for texture_number, texture_path in enumerate(filepaths, start=1):  # Start at 1 for Blender indexing
         # Skip empty file paths
@@ -228,7 +227,7 @@ def process_block(filepath, file, imported_objects):
         # Create texture node
         tex_node = nodes.new("ShaderNodeTexImage")
         tex_node.image = image
-        tex_node.location = (-300, -100 * (input_index))  # Subtract 83 for location offset
+        tex_node.location = (-300, -100 * (input_index))
 
         # Set color space
         if texture_number in TEXTURE_SETTINGS.get("srgb", []):
@@ -246,14 +245,11 @@ def process_block(filepath, file, imported_objects):
         elif texture_number in TEXTURE_SETTINGS.get("uv2", []):
             uv_node.uv_map = "UVMap_2"
             print(f"Texture {texture_number}: Assigned to UV2")
-        elif texture_number in TEXTURE_SETTINGS.get("uv3", []):
-            uv_node.uv_map = "UVMap_3"
-            print(f"Texture {texture_number}: Assigned to UV3")
         else:
             uv_node.uv_map = "UVMap_1"  # Default UV map
             print(f"Texture {texture_number}: Defaulted to UV1")
 
-        uv_node.location = (-500, -100 * (input_index))  # Subtract 83 for location offset
+        uv_node.location = (-500, -100 * (input_index))
 
         # Connect UV map to texture
         links.new(uv_node.outputs["UV"], tex_node.inputs["Vector"])

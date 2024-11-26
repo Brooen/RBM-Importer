@@ -2,7 +2,9 @@ import struct
 import math
 import bpy
 import os
-from functions import read_u16, read_s16, read_u32, read_float, read_string, hex_to_float, decompress_normal, clean_filename
+from functions import *
+
+#This RenderBlock needs: Materials
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing BavariumShield block from {filepath}")
@@ -12,10 +14,8 @@ def process_block(filepath, file, imported_objects):
 
     # Skip 73 bytes
     file.seek(file.tell() + 1)
-    
-
-
-    # Read 70 floats for material data
+   
+    # Read 4 floats for material data
     material_data = [read_float(file) for _ in range(4)]
     print("Material Data:", material_data)
         
@@ -32,8 +32,7 @@ def process_block(filepath, file, imported_objects):
         print(f"Filepath {i+1}: {path}")
     
     # Define the material name based on the available file paths
-    material_name = "bavarium_shield"
-    
+    material_name = "bavarium_shield"   
     print(f"Material Name: {material_name}")
     
     # Skip 16 bytes
@@ -94,12 +93,16 @@ def process_block(filepath, file, imported_objects):
     
     # Create UV maps
     uv_layer1 = mesh.uv_layers.new(name="UVMap_1")
-
-    
+   
     # Set UV coordinates
     for i, loop in enumerate(mesh.loops):
         uv_layer1.data[loop.index].uv = uv1_coords[loop.vertex_index]
-
+   
+    # Add "Smooth by Angle" modifier
+    modifier = mesh_obj.modifiers.new(name="Smooth by Angle", type='EDGE_SPLIT')
+    modifier.split_angle = math.radians(30)  # Angle in radians
+    modifier.use_edge_angle = True
+    modifier.use_edge_sharp = False
     
     # Assign smooth shading
     for poly in mesh.polygons:
