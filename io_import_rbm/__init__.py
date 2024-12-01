@@ -7,7 +7,6 @@ bl_info = {
     "version": (1, 1, 0),
 }
 
-
 import importlib
 import os
 import sys
@@ -39,6 +38,7 @@ RENDER_BLOCK_TYPES = {
     0x3b630e6d: ("Landmark", "import_landmark")
 }
 
+
 def ensure_shaders_nodegroup():
     """Ensure the '.Shaders' node group is present, appending it if necessary."""
     shaders_node_name = ".Shaders"
@@ -56,11 +56,13 @@ def ensure_shaders_nodegroup():
             print(f"Error appending '{shaders_node_name}': {e}")
     else:
         print(f"'{shaders_node_name}' node group already exists.")
-        
+
+
 # Utility function to read 32-bit unsigned integers from binary files
 def read_u32(file):
     return int.from_bytes(file.read(4), 'little')
-    
+
+
 # Function to compute the relative filepath and set it as a custom property
 def set_relative_filepath(obj, filepath, base_path):
     if base_path in filepath:
@@ -70,6 +72,7 @@ def set_relative_filepath(obj, filepath, base_path):
     else:
         print(f"Base path not found in {filepath}. Filepath not set.")
 
+
 # Main import function
 def import_model(filepath):
     preferences = bpy.context.preferences.addons[__name__].preferences
@@ -77,7 +80,7 @@ def import_model(filepath):
     ensure_shaders_nodegroup()  # Ensure the .Shaders node group is present
     imported_objects = []
     unrecognized_blocks_path = os.path.join(addon_path, "unrecognized_blocks.txt")  # Path for log file
-    
+
     try:
         with open(filepath, 'rb') as file:
             file.seek(45)
@@ -92,7 +95,7 @@ def import_model(filepath):
                 if block_name:
                     import_block(filepath, file, import_module_name, imported_objects)
                 else:
-                    print(f"Render Block {i+1}: Unknown Type (0x{renderblocktype:X}). Logging and Skipping.")
+                    print(f"Render Block {i + 1}: Unknown Type (0x{renderblocktype:X}). Logging and Skipping.")
                     # Log the filepath to the text file
                     with open(unrecognized_blocks_path, 'a') as log_file:
                         log_file.write(f"{filepath}\n")
@@ -106,6 +109,7 @@ def import_model(filepath):
     except Exception as e:
         print(f"Error importing model: {e}")
 
+
 # Function to import a render block by dynamically loading the module
 def import_block(filepath, file, module_name, imported_objects):
     try:
@@ -114,6 +118,7 @@ def import_block(filepath, file, module_name, imported_objects):
         block_module.process_block(filepath, file, imported_objects)
     except ModuleNotFoundError:
         print(f"Module '{module_name}' not found for render block import.")
+
 
 # Function to combine all imported objects into a single mesh
 def combine_imported_objects(objects):
@@ -128,11 +133,10 @@ def combine_imported_objects(objects):
 
     bpy.ops.object.join()
     print(f"Combined {len(objects)} objects into a single mesh.")
-    
+
     # Rotate the combined object by -90 degrees on the X-axis
     bpy.context.object.rotation_euler[0] = 1.5708  # 90 degrees in radians
-    
-    
+
 
 # Operator to handle the import functionality
 class RBMImportOperator(Operator):
@@ -154,7 +158,8 @@ class RBMImportOperator(Operator):
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
-        
+
+
 class MDICImportOperator(Operator):
     """Import MDIC Files"""
     bl_idname = "import_scene.mdic"
@@ -169,7 +174,7 @@ class MDICImportOperator(Operator):
     def execute(self, context):
         preferences = bpy.context.preferences.addons[__name__].preferences
         base_path = preferences.extraction_base_path  # Shared base path
-        
+
         mdic_file_paths = [os.path.join(self.directory, file.name) for file in self.files]
         for mdic_file_path in mdic_file_paths:
             process_mdic(mdic_file_path)
@@ -179,13 +184,16 @@ class MDICImportOperator(Operator):
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
-        
+
+
 def menu_func_import_mdic(self, context):
     self.layout.operator(MDICImportOperator.bl_idname, text="MDIC Files (.mdic)")
+
 
 # Register function to add the operator to the import menu
 def menu_func_import(self, context):
     self.layout.operator(RBMImportOperator.bl_idname, text="RBM Model (.rbm)")
+
 
 class RBMImporterPreferences(AddonPreferences):
     bl_idname = __name__
@@ -208,6 +216,7 @@ class RBMImporterPreferences(AddonPreferences):
         layout.prop(self, "extraction_base_path")
         layout.prop(self, "texture_extension")
 
+
 def register():
     bpy.utils.register_class(RBMImportOperator)
     bpy.utils.register_class(RBMImporterPreferences)  # Add preferences class
@@ -215,12 +224,14 @@ def register():
     bpy.utils.register_class(MDICImportOperator)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import_mdic)
 
+
 def unregister():
     bpy.utils.unregister_class(RBMImportOperator)
     bpy.utils.unregister_class(RBMImporterPreferences)  # Remove preferences class
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.utils.register_class(MDICImportOperator)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import_mdic)
+
 
 if __name__ == "__main__":
     register()
