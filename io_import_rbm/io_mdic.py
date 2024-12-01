@@ -5,6 +5,7 @@ from mathutils import Matrix, Euler
 import numpy as np
 import math
 import struct
+from functions import apply_transformations
 
 def get_base_path():
     preferences = bpy.context.preferences.addons["io_import_rbm"].preferences
@@ -75,37 +76,6 @@ def import_model(path, matrix_values, collection):
             collection.objects.link(obj)
             bpy.context.scene.collection.objects.unlink(obj)
             break
-
-
-def apply_transformations(obj, matrix_values):
-    # game world matrix is y-up, right-handed, row-major
-
-    y_up_to_z_up = Matrix((
-        (1, 0, 0, 0),
-        (0, 0, -1, 0),  # Z becomes -Y
-        (0, 1, 0, 0),   # Y becomes Z
-        (0, 0, 0, 1),
-    ))
-
-    try:
-        game_matrix = Matrix((
-            matrix_values[0:4],
-            matrix_values[4:8],
-            matrix_values[8:12],
-            matrix_values[12:16]
-        ))
-        blender_matrix = game_matrix
-
-        # Convert to column-major
-        blender_matrix = blender_matrix.transposed()
-
-        blender_matrix = y_up_to_z_up @ blender_matrix
-
-        obj.matrix_world = blender_matrix
-    except Exception as e:
-        print(f"Error applying transformation: {e}"
-              f"\nto matrix {matrix_values}")
-
 
 def process_mdic(mdic_file_path):
     # Derive a collection name from the MDIC file name

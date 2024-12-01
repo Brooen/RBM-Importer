@@ -63,7 +63,7 @@ def process_r16g16b16_snorm(file):
 # Function to process R16G16_UNORM format
 def process_r16g16_unorm(file):
     r = read_u16(file) / 65535.0
-    g = read_u16(file) / 65535.0
+    g = read_u16(file) / -65535.0
     return r, g
 
 
