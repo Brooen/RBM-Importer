@@ -99,10 +99,6 @@ def apply_transformations(obj, matrix_values):
         # Convert to column-major
         blender_matrix = blender_matrix.transposed()
 
-        # todo: check if this is required, only rotates local x
-        for i in range(4):
-            blender_matrix[i][1], blender_matrix[i][2] = -blender_matrix[i][2], blender_matrix[i][1]
-
         blender_matrix = y_up_to_z_up @ blender_matrix
 
         obj.matrix_world = blender_matrix
