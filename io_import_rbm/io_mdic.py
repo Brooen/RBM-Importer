@@ -5,7 +5,7 @@ from mathutils import Matrix, Euler
 import numpy as np
 import math
 import struct
-from functions import apply_transformations
+from .functions import apply_transformations
 
 def get_base_path():
     preferences = bpy.context.preferences.addons["io_import_rbm"].preferences

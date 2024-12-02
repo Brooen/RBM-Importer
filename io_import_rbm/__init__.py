@@ -36,7 +36,8 @@ RENDER_BLOCK_TYPES = {
     0xb1f9133d: ("FoliageBark2", "import_foliage_bark2"),
     0x04894ecd: ("General3", "import_general3"),
     0xc7021ee3: ("Layered", "import_layered"),
-    0x3b630e6d: ("Landmark", "import_landmark")
+    0x3b630e6d: ("Landmark", "import_landmark"),
+    0xd79884c6: ("VegetationFoliage", "import_vegetation_foliage")
 }
 
 def ensure_shaders_nodegroup():

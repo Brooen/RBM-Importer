@@ -13,7 +13,9 @@ def process_block(filepath, file, imported_objects):
     model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
 
     # Skip 205 bytes
-    file.seek(file.tell() + 205)
+    file.seek(file.tell() + 1)
+    scale = read_float(file)
+    file.seek(file.tell() + 200)
   
     # Read u32 filepath slot count
     filepath_slot_count = read_u32(file)
@@ -48,6 +50,9 @@ def process_block(filepath, file, imported_objects):
     # Read vertex blocks with AmfFormat_R16G16B16_SNORM
     for i in range(vertcount):
         x, y, z = process_r16g16b16_snorm(file)
+        x *= scale
+        y *= scale
+        z *= scale
         unspecified = read_u16(file)
         vertices.append((x, y, z))
         tangent_hex = read_u32(file)
@@ -67,6 +72,8 @@ def process_block(filepath, file, imported_objects):
         uv1_coords.append(uv1)
         uv2_coords.append(uv2)
     
+    uv1_coords = transform_uvs(uv1_coords, UV1Extent)
+    uv2_coords = transform_uvs(uv2_coords, UV2Extent)
     
     # Read face count
     face_count = read_u32(file)
