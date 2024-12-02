@@ -45,11 +45,19 @@ def process_block(filepath, file, imported_objects):
         path = read_string(file, path_length)
         filepaths.append(path)
         print(f"Filepath {i+1}: {path}")
-    
-    # Define the material name based on the available file paths
-    material_name = clean_material_name(os.path.basename(filepaths[0]))
-    if len(filepaths) > 3 and filepaths[3]:
-        material_name += f" - {clean_material_name(os.path.basename(filepaths[3]))}"
+
+    # Define filepath0 and hashed representation
+    renderblocktype = "General3"  # Replace with actual render block type if available
+    if filepaths:
+        # Clean filepath0 first
+        cleaned_filepath0 = clean_material_name(os.path.basename(filepaths[0]))
+        # Add hashed suffix
+        hashed_suffix = hash_paths_and_type(filepaths, renderblocktype)
+        filepath0 = f"{cleaned_filepath0} - {hashed_suffix}"
+        print(f"Modified filepath0: {filepath0}")
+
+    # Use filepath0 for the material name
+    material_name = filepath0
     print(f"Material Name: {material_name}")
     
     # Skip 16 bytes

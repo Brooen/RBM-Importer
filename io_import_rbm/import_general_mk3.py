@@ -55,22 +55,27 @@ def process_block(filepath, file, imported_objects):
     filepath_slot_count = read_u32(file)
     print(f"Filepath Slot Count: {filepath_slot_count}")
     
-    # Read each filepath
     filepaths = []
     for i in range(filepath_slot_count):
         path_length = read_u32(file)
         path = read_string(file, path_length)
         filepaths.append(path)
         print(f"Filepath {i+1}: {path}")
-    
-    # Define the material name based on the available file paths
-    material_name = clean_material_name(os.path.basename(filepaths[0]))
-    if len(filepaths) > 6 and filepaths[6]:
-        material_name += f" - {clean_material_name(os.path.basename(filepaths[6]))}"
-    if len(filepaths) > 11 and filepaths[11]:
-        material_name += f" - {clean_material_name(os.path.basename(filepaths[11]))}"
+
+    # Define filepath0 and hashed representation
+    renderblocktype = "GeneralMK3"  # Replace with actual render block type if available
+    if filepaths:
+        # Clean filepath0 first
+        cleaned_filepath0 = clean_material_name(os.path.basename(filepaths[0]))
+        # Add hashed suffix
+        hashed_suffix = hash_paths_and_type(filepaths, renderblocktype)
+        filepath0 = f"{cleaned_filepath0} - {hashed_suffix}"
+        print(f"Modified filepath0: {filepath0}")
+
+    # Use filepath0 for the material name
+    material_name = filepath0
     print(f"Material Name: {material_name}")
-    
+        
     # Skip 16 bytes
     file.seek(file.tell() + 16)
     

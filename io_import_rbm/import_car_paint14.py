@@ -52,17 +52,19 @@ def process_block(filepath, file, imported_objects):
         path = read_string(file, path_length)
         filepaths.append(path)
         print(f"Filepath {i+1}: {path}")
-    
-    # Define the material name based on the available file paths
-    material_name = clean_material_name(os.path.basename(filepaths[0]))
 
-    # Check if 10th and 11th filepaths exist and are not "dummy_layered_dif"
-    if len(filepaths) > 10 and "dummy_layered_dif" not in filepaths[10]:
-        material_name += f" - {clean_material_name(os.path.basename(filepaths[10]))}"
-        
-    if len(filepaths) > 11 and "dummy_layered_dif" not in filepaths[11]:
-        # Add the 11th filepath, even if the 10th was a dummy
-        material_name += f" - {clean_material_name(os.path.basename(filepaths[11]))}"
+    # Define filepath0 and hashed representation
+    renderblocktype = "CarPaint14"  # Replace with actual render block type if available
+    if filepaths:
+        # Clean filepath0 first
+        cleaned_filepath0 = clean_material_name(os.path.basename(filepaths[0]))
+        # Add hashed suffix
+        hashed_suffix = hash_paths_and_type(filepaths, renderblocktype)
+        filepath0 = f"{cleaned_filepath0} - {hashed_suffix}"
+        print(f"Modified filepath0: {filepath0}")
+
+    # Use filepath0 for the material name
+    material_name = filepath0
     print(f"Material Name: {material_name}")
     
     # Skip 16 bytes

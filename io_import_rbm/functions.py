@@ -2,6 +2,7 @@ import os
 import struct
 from mathutils import Matrix, Euler
 import numpy as np
+import hashlib
 
 
 # Helper functions for reading various binary data types
@@ -130,3 +131,11 @@ def apply_transformations(obj, matrix_values):
     except Exception as e:
         print(f"Error applying transformation: {e}"
               f"\nto matrix {matrix_values}")
+              
+# Calculate the hash of the rest of the paths and renderblocktype
+def hash_paths_and_type(filepaths, renderblocktype):
+    hasher = hashlib.sha256()
+    # Combine all filepaths except the first and renderblocktype into a single string
+    combined_data = ''.join(filepaths[1:]) + str(renderblocktype)
+    hasher.update(combined_data.encode('utf-8'))
+    return hasher.hexdigest()[:8]  # Shorten hash for readability
