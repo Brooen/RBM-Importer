@@ -7,12 +7,15 @@ import math
 import struct
 from .functions import apply_transformations
 
+
 def get_base_path():
     preferences = bpy.context.preferences.addons["io_import_rbm"].preferences
     return preferences.extraction_base_path
-    
+
+
 # Dictionary to track already imported meshes
 imported_meshes = {}
+
 
 def get_current_objects():
     return set(bpy.context.scene.objects)
@@ -77,6 +80,7 @@ def import_model(path, matrix_values, collection):
             bpy.context.scene.collection.objects.unlink(obj)
             break
 
+
 def process_mdic(mdic_file_path):
     # Derive a collection name from the MDIC file name
     collection_name = os.path.splitext(os.path.basename(mdic_file_path))[0]
@@ -117,6 +121,5 @@ def main(mdic_file_paths):
 
 if __name__ == "__main__":
     print("This script is designed to be used as part of a Blender addon.")
-
 
 print("Script completed.")
