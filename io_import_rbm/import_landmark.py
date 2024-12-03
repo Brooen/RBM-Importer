@@ -4,7 +4,7 @@ import bpy
 import os
 from functions import *
 
-
+#This RenderBlock needs: Materials, UV extent/transforms, Scale, Flags
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing Landmark block from {filepath}")
@@ -28,13 +28,13 @@ def process_block(filepath, file, imported_objects):
         print(f"Filepath {i+1}: {path}")
 
     # Define filepath0 and hashed representation
-    renderblocktype = "Landmark"  # Replace with actual render block type if available
+    renderblocktype = "Landmark"  
     if filepaths:
         # Clean filepath0 first
         cleaned_filepath0 = clean_material_name(os.path.basename(filepaths[0]))
         # Add hashed suffix
         hashed_suffix = hash_paths_and_type(filepaths, renderblocktype)
-        filepath0 = f"{cleaned_filepath0} - {hashed_suffix}"
+        filepath0 = f"{cleaned_filepath0} - id:{hashed_suffix}"
         print(f"Modified filepath0: {filepath0}")
 
     # Use filepath0 for the material name

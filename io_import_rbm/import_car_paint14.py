@@ -4,6 +4,8 @@ import bpy
 import os
 from functions import *
 
+#This RenderBlock needs:
+
 # Flag definitions
 SUPPORT_DECALS             = 0x1
 SUPPORT_DAMAGE_BLEND       = 0x2
@@ -54,13 +56,13 @@ def process_block(filepath, file, imported_objects):
         print(f"Filepath {i+1}: {path}")
 
     # Define filepath0 and hashed representation
-    renderblocktype = "CarPaint14"  # Replace with actual render block type if available
+    renderblocktype = "CarPaint14" 
     if filepaths:
         # Clean filepath0 first
         cleaned_filepath0 = clean_material_name(os.path.basename(filepaths[0]))
         # Add hashed suffix
         hashed_suffix = hash_paths_and_type(filepaths, renderblocktype)
-        filepath0 = f"{cleaned_filepath0} - {hashed_suffix}"
+        filepath0 = f"{cleaned_filepath0} - id:{hashed_suffix}"
         print(f"Modified filepath0: {filepath0}")
 
     # Use filepath0 for the material name

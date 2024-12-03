@@ -114,6 +114,23 @@ def process_block(filepath, file, imported_objects):
         material = bpy.data.materials.new(name=material_name)
     mesh.materials.append(material)
     
+    material.use_nodes = True
+    nodes = material.node_tree.nodes
+    links = material.node_tree.links
+
+    # Clear existing nodes
+    for node in nodes:
+        nodes.remove(node)
+
+    # Create and configure the node group
+    shader_node = nodes.new("ShaderNodeGroup")
+    node_group = bpy.data.node_groups.get("BavariumShield")
+    if not node_group:
+        print("Node group 'BavariumShield' not found.")
+    else:
+        shader_node.node_tree = node_group
+        shader_node.location = (0, 0)
+    
     imported_objects.append(mesh_obj)
     
 

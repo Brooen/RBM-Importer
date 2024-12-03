@@ -4,6 +4,8 @@ import bpy
 import os
 from functions import *
 
+#This RenderBlock needs: 
+
 def process_block(filepath, file, imported_objects):
     print(f"Processing WaterHull block from {filepath}")
 
