@@ -4,7 +4,7 @@ bl_info = {
     "category": "Import-Export",
     "description": "Imports RBM Files to blender",
     "author": "Brooen",
-    "version": (1, 3, 0),
+    "version": (1, 3, 1),
 }
 
 
@@ -37,7 +37,8 @@ RENDER_BLOCK_TYPES = {
     0x04894ecd: ("General3", "import_general3"),
     0xc7021ee3: ("Layered", "import_layered"),
     0x3b630e6d: ("Landmark", "import_landmark"),
-    0xd79884c6: ("VegetationFoliage", "import_vegetation_foliage")
+    0xd79884c6: ("VegetationFoliage", "import_vegetation_foliage"),
+    0x2ee0f4a9: ("GeneralSimple", "import_general_simple")
 }
 
 def ensure_shaders_nodegroup():
