@@ -5,18 +5,18 @@ A tool that imports Just Cause 3's RBM files into Blender
 
 [Latest Test Build](https://github.com/Brooen/RBM-Importer/raw/refs/heads/main/io_import_rbm.zip "Latest Test Build")
 ## Supported RBMs
-- GeneralMK3 - Materials supported
-- CarPaint14 - Materials supported
-- CarLight
-- Window - Materials supported
-- BavariumShield - Materials supported
+- GeneralMK3
+- CarPaint14
+- CarLight - Needs materials
+- Window
+- BavariumShield
 - WaterHull
-- General6 - Materials supported
-- FoliageBark2 - Materials supported
-- General3 - Materials supported
-- Layered
-- Landmark
-- VegetationFoliage - Materials supported
+- General6
+- FoliageBark2
+- General3
+- Layered - Needs materials, UVFix, and ScaleFix
+- Landmark - Needs materials, UVFix, and ScaleFix
+- VegetationFoliage
 ## MDIC Importing
 Supports all MDIC files, MDIC files store static enviroment models.
 ## BLO Importing
