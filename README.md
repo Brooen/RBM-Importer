@@ -16,6 +16,7 @@ A tool that imports Just Cause 3's RBM files into Blender
 - General3 - Materials supported
 - Layered
 - Landmark
+- VegetationFoliage - Materials supported
 ## MDIC Importing
 Supports all MDIC files, MDIC files store static enviroment models.
 ## BLO Importing
