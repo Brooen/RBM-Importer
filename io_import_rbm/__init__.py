@@ -4,7 +4,7 @@ bl_info = {
     "category": "Import-Export",
     "description": "Imports RBM Files to blender",
     "author": "Brooen",
-    "version": (1, 1, 0),
+    "version": (1, 2, 0),
 }
 
 
@@ -166,12 +166,27 @@ class MDICImportOperator(Operator):
     files: CollectionProperty(type=bpy.types.PropertyGroup)
     directory: StringProperty(subtype='DIR_PATH')
     filter_glob: StringProperty(default="*.mdic", options={'HIDDEN'})
+    recursive: bpy.props.BoolProperty(
+        name="Recursive",
+        description="Import MDIC files recursively from subdirectories",
+        default=False
+    )
 
     def execute(self, context):
         preferences = bpy.context.preferences.addons[__name__].preferences
         base_path = preferences.extraction_base_path  # Shared base path
         
-        mdic_file_paths = [os.path.join(self.directory, file.name) for file in self.files]
+        # Collect file paths
+        if self.recursive:
+            mdic_file_paths = []
+            for root, _, files in os.walk(self.directory):
+                for file in files:
+                    if file.endswith(".mdic"):
+                        mdic_file_paths.append(os.path.join(root, file))
+        else:
+            mdic_file_paths = [os.path.join(self.directory, file.name) for file in self.files]
+
+        # Process each MDIC file
         for mdic_file_path in mdic_file_paths:
             process_mdic(mdic_file_path)
 
@@ -180,6 +195,11 @@ class MDICImportOperator(Operator):
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "recursive")
+
         
 def menu_func_import_mdic(self, context):
     self.layout.operator(MDICImportOperator.bl_idname, text="MDIC Files (.mdic)")

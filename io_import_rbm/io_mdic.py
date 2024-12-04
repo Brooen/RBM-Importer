@@ -35,15 +35,22 @@ def import_model(path, matrix_values, collection):
 
     # Check if the model's mesh data is already imported
     if new_path in imported_meshes:
-        # Create a new object that references the existing mesh
+        # Get the original object
         mesh_data = imported_meshes[new_path]
-        instance_obj = bpy.data.objects.new(mesh_data.name, mesh_data)
-        # Apply transformations to the instance
-        apply_transformations(instance_obj, matrix_values)
-        instance_obj.scale = (1, 1, 1)
-
-        collection.objects.link(instance_obj)
-        return
+        if mesh_data and mesh_data.users > 0:
+            # Find an existing object that uses this mesh
+            original_obj = next((obj for obj in bpy.data.objects if obj.data == mesh_data), None)
+            if original_obj:
+                # Create a linked duplicate
+                instance_obj = original_obj.copy()
+                instance_obj.data = original_obj.data  # Share the same mesh data
+                instance_obj.animation_data_clear()  # Optional: clear animation data if not needed
+                apply_transformations(instance_obj, matrix_values)
+                instance_obj.scale = (1, 1, 1)
+                collection.objects.link(instance_obj)
+                return
+        else:
+            del imported_meshes[new_path]
 
     # Split new_path into directory and file name
     directory, filename = os.path.split(new_path)
