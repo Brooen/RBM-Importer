@@ -9,10 +9,10 @@ A tool that imports Just Cause 3's RBM files into Blender
 - CarPaint14 - Materials supported
 - CarLight
 - Window - Materials supported
-- BavariumShield
+- BavariumShield - Materials supported
 - WaterHull
 - General6 - Materials supported
-- FoliageBark2
+- FoliageBark2 - Materials supported
 - General3 - Materials supported
 - Layered
 - Landmark
