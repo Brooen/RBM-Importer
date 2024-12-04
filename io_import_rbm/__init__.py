@@ -4,7 +4,7 @@ bl_info = {
     "category": "Import-Export",
     "description": "Imports RBM Files to blender",
     "author": "Brooen",
-    "version": (1, 2, 0),
+    "version": (1, 3, 0),
 }
 
 
