@@ -23,7 +23,7 @@ Supports all MDIC files, MDIC files store static enviroment models.
 (NOT YET IMPLEMENTED)
 Supports all BLO files, BLO files store props, lights, and decals.
 ## Contributers
-- EonZeNx - Help with mapping out files and figuring out mdic transforms
-- PredatorCZ - ApexLib for referencing and also mapping out mdic binaries
+- EonZeNx - Help with mapping out files and figuring out MDIC transforms
+- PredatorCZ - ApexLib for referencing and also mapping out MDIC binaries
 - SK83RJOSH - Helping with mesh normals
 - Aaron Kirkham - JC Model Renderer source helped with figuring out shading data, mostly flags and texture slots
