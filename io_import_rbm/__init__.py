@@ -25,19 +25,19 @@ if addon_path not in sys.path:
 
 # Dictionary to map render block types to their names and import functions
 RENDER_BLOCK_TYPES = {
-    0x2cec5ad5: ("GeneralMK3", "import_general_mk3"),
-    0x483304d6: ("CarPaint14", "import_car_paint14"),
-    0x5b2003f6: ("Window", "import_window"),
-    0xdb948bf1: ("CarLight", "import_car_light"),
-    0xa5d24ccd: ("BavariumShield", "import_bavarium_shield"),
-    0xf99c72a1: ("WaterHull", "import_water_hull"),
-    0xa7583b2b: ("General6", "import_general6"),
-    0xb1f9133d: ("FoliageBark2", "import_foliage_bark2"),
-    0x04894ecd: ("General3", "import_general3"),
-    0xc7021ee3: ("Layered", "import_layered"),
-    0x3b630e6d: ("Landmark", "import_landmark"),
-    0xd79884c6: ("VegetationFoliage", "import_vegetation_foliage"),
-    0x2ee0f4a9: ("GeneralSimple", "import_general_simple")
+    0x2cec5ad5: ("GeneralMK3", "render_blocks.general_mk3"),
+    0x483304d6: ("CarPaint14", "render_blocks.car_paint14"),
+    0x5b2003f6: ("Window", "render_blocks.window"),
+    0xdb948bf1: ("CarLight", "render_blocks.car_light"),
+    0xa5d24ccd: ("BavariumShield", "render_blocks.bavarium_shield"),
+    0xf99c72a1: ("WaterHull", "render_blocks.water_hull"),
+    0xa7583b2b: ("General6", "render_blocks.general6"),
+    0xb1f9133d: ("FoliageBark2", "render_blocks.foliage_bark2"),
+    0x04894ecd: ("General3", "render_blocks.general3"),
+    0xc7021ee3: ("Layered", "render_blocks.layered"),
+    0x3b630e6d: ("Landmark", "render_blocks.landmark"),
+    0xd79884c6: ("VegetationFoliage", "render_blocks.vegetation_foliage"),
+    0x2ee0f4a9: ("GeneralSimple", "render_blocks.general_simple")
 }
 
 
@@ -68,11 +68,11 @@ def read_u32(file):
 # Function to compute the relative filepath and set it as a custom property
 def set_relative_filepath(obj, filepath, base_path):
     if base_path in filepath:
-        relative_path = filepath.replace(base_path, "").lstrip("\\/")
+        relative_path = filepath.replace(base_path, "").lstrip("\\/").replace("\\", "/")
         obj["filepath"] = relative_path
         print(f"Set relative filepath: {relative_path}")
     else:
-        print(f"Base path not found in {filepath}. Filepath not set.")
+        print(f"Base path {base_path} not found in {filepath}. Filepath not set.")
 
 
 # Main import function

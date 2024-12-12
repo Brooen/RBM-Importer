@@ -100,7 +100,7 @@ def transform_uvs(uvs, uv_extent):
 
 
 # Function to apply matrix transforms
-def apply_transformations(obj, matrix_values):
+def apply_transformations(obj, matrix_values, respect_parent: bool = True):
     """
     game world matrix is y-up, right-handed, row-major
     """
@@ -113,12 +113,16 @@ def apply_transformations(obj, matrix_values):
     ))
 
     try:
-        game_matrix = Matrix((
-            matrix_values[0:4],
-            matrix_values[4:8],
-            matrix_values[8:12],
-            matrix_values[12:16]
-        ))
+        if isinstance(matrix_values, Matrix):
+            game_matrix = matrix_values
+        else:
+            game_matrix = Matrix((
+                matrix_values[0:4],
+                matrix_values[4:8],
+                matrix_values[8:12],
+                matrix_values[12:16]
+            ))
+
         blender_matrix = game_matrix
 
         # Convert to column-major
@@ -126,6 +130,10 @@ def apply_transformations(obj, matrix_values):
 
         # change basis
         blender_matrix = y_up_to_z_up @ blender_matrix
+
+        if respect_parent:
+            if obj.parent is not None:
+                blender_matrix = obj.parent.matrix_world @ blender_matrix
 
         obj.matrix_world = blender_matrix
     except Exception as e:
