@@ -37,7 +37,10 @@ RENDER_BLOCK_TYPES = {
     0xc7021ee3: ("Layered", "render_blocks.layered"),
     0x3b630e6d: ("Landmark", "render_blocks.landmark"),
     0xd79884c6: ("VegetationFoliage", "render_blocks.vegetation_foliage"),
-    0x2ee0f4a9: ("GeneralSimple", "render_blocks.general_simple")
+    0x2ee0f4a9: ("GeneralSimple", "render_blocks.general_simple"),
+    0x35bf53d5: ("GeneralSimple3", "render_blocks.general_simple3"),
+    0x9d6e332a: ("CharacterClothes9", "render_blocks.character_clothes9"),
+    0x626f5e3b: ("CharacterSkin6", "render_blocks.character_skin6")
 }
 
 

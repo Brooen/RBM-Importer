@@ -124,18 +124,19 @@ def apply_transformations(obj, matrix_values, respect_parent: bool = True):
             ))
 
         blender_matrix = game_matrix
+        # Convert to Blender's column-major format
+        blender_matrix = game_matrix.transposed()
 
-        # Convert to column-major
-        blender_matrix = blender_matrix.transposed()
-
-        # change basis
+        # Change basis from Y-up to Z-up
         blender_matrix = y_up_to_z_up @ blender_matrix
+
 
         if respect_parent:
             if obj.parent is not None:
                 blender_matrix = obj.parent.matrix_world @ blender_matrix
 
         obj.matrix_world = blender_matrix
+
     except Exception as e:
         print(f"Error applying transformation: {e}"
               f"\nto matrix {matrix_values}")
