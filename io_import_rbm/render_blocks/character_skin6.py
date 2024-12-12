@@ -1,8 +1,7 @@
-import struct
 import math
 import bpy
-import os
 from functions import *
+from io.stream import read_u16, read_u32, read_float, read_string
 
 #This RenderBlock needs:
 
@@ -44,9 +43,9 @@ def process_block(filepath, file, imported_objects):
     filepaths = []
     for i in range(filepath_slot_count):
         path_length = read_u32(file)
-        path = read_string(file, path_length)
-        filepaths.append(path)
-        print(f"Filepath {i+1}: {path}")
+        file_path = read_string(file, path_length)
+        filepaths.append(file_path)
+        print(f"Filepath {i+1}: {file_path}")
 
     # Define filepath0 and hashed representation
     renderblocktype = "CharacterSkin6" 

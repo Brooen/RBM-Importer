@@ -1,8 +1,9 @@
-import struct
 import math
 import bpy
-import os
-from functions import *
+from os import path
+from io_import_rbm import functions
+from io_import_rbm.io.stream import read_u16, read_u32, read_float, read_string
+
 
 #This RenderBlock needs: Materials
 
@@ -10,7 +11,7 @@ def process_block(filepath, file, imported_objects):
     print(f"Processing BavariumShield block from {filepath}")
 
     # Set up the model name and clean it
-    model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
+    model_name = functions.clean_filename(path.splitext(path.basename(filepath))[0])
 
     # Skip 73 bytes
     file.seek(file.tell() + 1)
@@ -27,9 +28,9 @@ def process_block(filepath, file, imported_objects):
     filepaths = []
     for i in range(filepath_slot_count):
         path_length = read_u32(file)
-        path = read_string(file, path_length)
-        filepaths.append(path)
-        print(f"Filepath {i+1}: {path}")
+        file_path = read_string(file, path_length)
+        filepaths.append(file_path)
+        print(f"Filepath {i+1}: {file_path}")
     
     # Define the material name based on the available file paths
     material_name = "bavarium_shield"   
@@ -62,8 +63,8 @@ def process_block(filepath, file, imported_objects):
         
         
         # Decompress the normal and tangent
-        normal_dec = decompress_normal(normal_hex)
-        tangent_dec = decompress_normal(tangent_hex)
+        normal_dec = functions.decompress_normal(normal_hex)
+        tangent_dec = functions.decompress_normal(tangent_hex)
         
         uv1_coords.append(uv1)
         

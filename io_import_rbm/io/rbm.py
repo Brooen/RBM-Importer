@@ -4,62 +4,13 @@
 
 from os import path
 import bpy
+from io_import_rbm.blender import bpy_helpers, bpy_addons
 
 
-def get_base_path() -> str:
-    preferences = bpy.context.preferences.addons["io_import_rbm"].preferences
-    return preferences.extraction_base_path
+def import_rbm(file_path: str) -> bpy.types.Object | None:
+    directory, filename = path.split(file_path)
 
-
-def get_current_objects() -> set:
-    return set(bpy.context.scene.objects)
-
-
-def create_collection(name: str) -> bpy.types.Collection:
-    collection: bpy.types.Collection = bpy.data.collections.get(name)
-    if collection is None:
-        print(f"creating '{name}' collection")
-        collection = bpy.data.collections.new(name)
-        bpy.context.scene.collection.children.link(collection)
-
-    return collection
-
-
-def get_base_mesh_collection() -> bpy.types.Collection:
-    COLLECTION_NAME: str = "Base mesh"
-
-    collection: bpy.types.Collection = bpy.data.collections.get(COLLECTION_NAME)
-    if collection is None:
-        collection = create_collection(COLLECTION_NAME)
-
-        view_layer = bpy.context.view_layer
-        layer_collection = next((lc for lc in view_layer.layer_collection.children if lc.collection == collection), None)
-        if layer_collection:
-            print(f"excluding '{COLLECTION_NAME}' collection from view layer")
-            layer_collection.exclude = True
-
-    return collection
-
-
-def get_object_from_collection(collection: bpy.types.Collection, property_name: str, property_value) -> bpy.types.Object | None:
-    failed_matches: list[str] = []
-    for base_object in collection.objects:
-        object_property = base_object.get(property_name)
-        if object_property is None:
-            continue
-
-        if object_property == property_value:
-            return base_object
-
-        failed_matches.append(object_property)
-
-    return None
-
-
-def import_rbm(target_path: str) -> bpy.types.Object | None:
-    directory, filename = path.split(target_path)
-
-    before_import = get_current_objects()
+    before_import = bpy_helpers.get_all_objects()
     result = bpy.ops.import_scene.rbm_multi(
         directory=directory,
         files=[{"name": filename}],
@@ -67,40 +18,38 @@ def import_rbm(target_path: str) -> bpy.types.Object | None:
     )
 
     if result != {'FINISHED'}:
-        print(f"Failed to import {target_path}")
+        print(f"Failed to import {file_path}")
         return
 
-    after_import = get_current_objects()
+    after_import = bpy_helpers.get_all_objects()
     imported_objects = after_import - before_import
 
     if len(imported_objects) != 1:
-        print(f"Failed to import {target_path}, too many imported objects")
+        print(f"Failed to import {file_path}, too many imported objects")
         return
 
     return imported_objects.pop()
 
 
-def load_rbm(file_path: str, relative: bool = True, import_damage_objects: bool = True) -> bpy.types.Object | None:
-    # Substrings to filter for damage-related objects
-    damage_filters = ["debris", "dest", "dst", "dmg", "deformed", "chaos"]
+def is_debris(file_path: str) -> bool:
+    DEBRIS_NAMES = ["debris", "dest", "dst", "dmg", "deformed", "chaos"]
 
-    # Check for damage-related substrings in the filename
-    if not import_damage_objects and any(substr in file_path.lower() for substr in damage_filters):
-        print(f"Skipping damage-related file: {file_path}")
-        return
+    return any(debris_name in file_path.lower() for debris_name in DEBRIS_NAMES)
 
+
+def load_rbm(file_path: str, relative: bool = True) -> bpy.types.Object | None:
     relative_target_path: str = file_path.replace(".lod", "_lod1.rbm")
     target_path: str = relative_target_path
 
     if relative:
-        target_path = path.join(get_base_path(), target_path)
+        target_path = path.join(bpy_addons.get_base_path(), target_path)
 
     if not path.exists(target_path):
         print(f"Model file not found, skipping: {target_path}")
         return
 
-    base_mesh_collection = get_base_mesh_collection()
-    existing_object = get_object_from_collection(base_mesh_collection, "filepath", relative_target_path)
+    base_mesh_collection = bpy_helpers.get_base_mesh_collection()
+    existing_object = bpy_helpers.get_object_from_collection(base_mesh_collection, "filepath", relative_target_path)
 
     if existing_object is None:
         existing_object = import_rbm(target_path)

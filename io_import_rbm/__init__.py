@@ -11,12 +11,12 @@ import importlib
 import os
 import sys
 import bpy
-from bpy.props import CollectionProperty, StringProperty
+from bpy.props import CollectionProperty
 from bpy.types import Operator
 from importlib import reload
 from bpy.props import StringProperty
 from bpy.types import AddonPreferences
-from .io_mdic import process_mdic
+from io_import_rbm.io import mdic
 
 # Set the importer path to the same directory as the addon
 addon_path = os.path.dirname(__file__)
@@ -25,22 +25,22 @@ if addon_path not in sys.path:
 
 # Dictionary to map render block types to their names and import functions
 RENDER_BLOCK_TYPES = {
-    0x2cec5ad5: ("GeneralMK3", "render_blocks.general_mk3"),
-    0x483304d6: ("CarPaint14", "render_blocks.car_paint14"),
-    0x5b2003f6: ("Window", "render_blocks.window"),
-    0xdb948bf1: ("CarLight", "render_blocks.car_light"),
-    0xa5d24ccd: ("BavariumShield", "render_blocks.bavarium_shield"),
-    0xf99c72a1: ("WaterHull", "render_blocks.water_hull"),
-    0xa7583b2b: ("General6", "render_blocks.general6"),
-    0xb1f9133d: ("FoliageBark2", "render_blocks.foliage_bark2"),
-    0x04894ecd: ("General3", "render_blocks.general3"),
-    0xc7021ee3: ("Layered", "render_blocks.layered"),
-    0x3b630e6d: ("Landmark", "render_blocks.landmark"),
-    0xd79884c6: ("VegetationFoliage", "render_blocks.vegetation_foliage"),
-    0x2ee0f4a9: ("GeneralSimple", "render_blocks.general_simple"),
-    0x35bf53d5: ("GeneralSimple3", "render_blocks.general_simple3"),
-    0x9d6e332a: ("CharacterClothes9", "render_blocks.character_clothes9"),
-    0x626f5e3b: ("CharacterSkin6", "render_blocks.character_skin6")
+    0x2cec5ad5: ("GeneralMK3",          "io_import_rbm.render_blocks.general_mk3"),
+    0x2ee0f4a9: ("GeneralSimple",       "io_import_rbm.render_blocks.general_simple"),
+    0x3b630e6d: ("Landmark",            "io_import_rbm.render_blocks.landmark"),
+    0x5b2003f6: ("Window",              "io_import_rbm.render_blocks.window"),
+    0x9d6e332a: ("CharacterClothes9",   "io_import_rbm.render_blocks.character_clothes9"),
+    0x35bf53d5: ("GeneralSimple3",      "io_import_rbm.render_blocks.general_simple3"),
+    0x626f5e3b: ("CharacterSkin6",      "io_import_rbm.render_blocks.character_skin6"),
+    0x04894ecd: ("General3",            "io_import_rbm.render_blocks.general3"),
+    0x483304d6: ("CarPaint14",          "io_import_rbm.render_blocks.car_paint14"),
+    0xa5d24ccd: ("BavariumShield",      "io_import_rbm.render_blocks.bavarium_shield"),
+    0xa7583b2b: ("General6",            "io_import_rbm.render_blocks.general6"),
+    0xb1f9133d: ("FoliageBark2",        "io_import_rbm.render_blocks.foliage_bark2"),
+    0xc7021ee3: ("Layered",             "io_import_rbm.render_blocks.layered"),
+    0xd79884c6: ("VegetationFoliage",   "io_import_rbm.render_blocks.vegetation_foliage"),
+    0xdb948bf1: ("CarLight",            "io_import_rbm.render_blocks.car_light"),
+    0xf99c72a1: ("WaterHull",           "io_import_rbm.render_blocks.water_hull"),
 }
 
 
@@ -197,7 +197,7 @@ class MDICImportOperator(Operator):
 
         # Process each MDIC file
         for mdic_file_path in mdic_file_paths:
-            process_mdic(mdic_file_path)
+            mdic.load_mdic(mdic_file_path)
 
         return {'FINISHED'}
 
@@ -212,6 +212,7 @@ class MDICImportOperator(Operator):
 
 def menu_func_import_mdic(self, context):
     self.layout.operator(MDICImportOperator.bl_idname, text="MDIC Files (.mdic)")
+
 
 class BLOImportOperator(Operator):
     """Import BLO Files"""
@@ -236,7 +237,7 @@ class BLOImportOperator(Operator):
     )
 
     def execute(self, context):
-        from .io.blo import main  # Correct import for blo.py
+        from io_import_rbm.io import blo  # Correct import for blo.py
 
         # Collect file paths
         if self.recursive:
@@ -252,7 +253,7 @@ class BLOImportOperator(Operator):
         for blo_file_path in blo_file_paths:
             print(f"Processing BLO file: {blo_file_path}")
             try:
-                main(blo_file_path, import_damage_objects=self.import_damage_objects)  # Pass the toggle
+                blo.main(blo_file_path, import_damage_objects=self.import_damage_objects)  # Pass the toggle
             except Exception as e:
                 self.report({'ERROR'}, f"Failed to process {blo_file_path}: {e}")
                 print(f"Error processing BLO file: {blo_file_path}, {e}")
@@ -271,6 +272,7 @@ class BLOImportOperator(Operator):
 
 def menu_func_import_blo(self, context):
     self.layout.operator(BLOImportOperator.bl_idname, text="BLO Files (.blo)")
+
 
 # Register function to add the operator to the import menu
 def menu_func_import(self, context):
@@ -329,6 +331,7 @@ def unregister():
 
     bpy.utils.unregister_class(BLOImportOperator)  # Unregister BLO operator
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import_blo)  # Remove BLO from menu
+
 
 if __name__ == "__main__":
     register()
