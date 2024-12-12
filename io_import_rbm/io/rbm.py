@@ -80,7 +80,15 @@ def import_rbm(target_path: str) -> bpy.types.Object | None:
     return imported_objects.pop()
 
 
-def load_rbm(file_path: str, relative: bool = True) -> bpy.types.Object | None:
+def load_rbm(file_path: str, relative: bool = True, import_damage_objects: bool = True) -> bpy.types.Object | None:
+    # Substrings to filter for damage-related objects
+    damage_filters = ["debris", "dest", "dst", "dmg"]
+
+    # Check for damage-related substrings in the filename
+    if not import_damage_objects and any(substr in file_path.lower() for substr in damage_filters):
+        print(f"Skipping damage-related file: {file_path}")
+        return
+
     relative_target_path: str = file_path.replace(".lod", "_lod1.rbm")
     target_path: str = relative_target_path
 

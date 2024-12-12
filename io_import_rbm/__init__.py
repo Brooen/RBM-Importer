@@ -4,7 +4,7 @@ bl_info = {
     "category": "Import-Export",
     "description": "Imports RBM Files to blender",
     "author": "Brooen",
-    "version": (1, 3, 1),
+    "version": (1, 4, 0),
 }
 
 import importlib
@@ -213,6 +213,64 @@ class MDICImportOperator(Operator):
 def menu_func_import_mdic(self, context):
     self.layout.operator(MDICImportOperator.bl_idname, text="MDIC Files (.mdic)")
 
+class BLOImportOperator(Operator):
+    """Import BLO Files"""
+    bl_idname = "import_scene.blo"
+    bl_label = "Import BLO Files"
+    bl_description = "Import BLO files with associated models"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    files: CollectionProperty(type=bpy.types.PropertyGroup)
+    directory: StringProperty(subtype='DIR_PATH')
+    filter_glob: StringProperty(default="*.blo", options={'HIDDEN'})
+    recursive: bpy.props.BoolProperty(
+        name="Recursive",
+        description="Import BLO files recursively from subdirectories",
+        default=False
+    )
+
+    import_damage_objects: bpy.props.BoolProperty(
+        name="Import Damage Objects",
+        description="Include objects with 'debris', 'dest', 'dst', or 'dmg' in their filenames",
+        default=False
+    )
+
+    def execute(self, context):
+        from .io.blo import main  # Correct import for blo.py
+
+        # Collect file paths
+        if self.recursive:
+            blo_file_paths = []
+            for root, _, files in os.walk(self.directory):
+                for file in files:
+                    if file.endswith(".blo"):
+                        blo_file_paths.append(os.path.join(root, file))
+        else:
+            blo_file_paths = [os.path.join(self.directory, file.name) for file in self.files]
+
+        # Process each BLO file
+        for blo_file_path in blo_file_paths:
+            print(f"Processing BLO file: {blo_file_path}")
+            try:
+                main(blo_file_path, import_damage_objects=self.import_damage_objects)  # Pass the toggle
+            except Exception as e:
+                self.report({'ERROR'}, f"Failed to process {blo_file_path}: {e}")
+                print(f"Error processing BLO file: {blo_file_path}, {e}")
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "recursive")
+        layout.prop(self, "import_damage_objects")  # Add the boolean property to the UI
+
+
+def menu_func_import_blo(self, context):
+    self.layout.operator(BLOImportOperator.bl_idname, text="BLO Files (.blo)")
 
 # Register function to add the operator to the import menu
 def menu_func_import(self, context):
@@ -257,6 +315,9 @@ def register():
     bpy.utils.register_class(MDICImportOperator)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import_mdic)
 
+    bpy.utils.register_class(BLOImportOperator)  # Register BLO operator
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import_blo)  # Add BLO to menu
+
 
 def unregister():
     bpy.utils.unregister_class(RBMImportOperator)
@@ -266,6 +327,8 @@ def unregister():
     bpy.utils.register_class(MDICImportOperator)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import_mdic)
 
+    bpy.utils.unregister_class(BLOImportOperator)  # Unregister BLO operator
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import_blo)  # Remove BLO from menu
 
 if __name__ == "__main__":
     register()
