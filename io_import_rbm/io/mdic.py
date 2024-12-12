@@ -40,9 +40,9 @@ def load_mdic_file(file_path: str) -> list[MdicFragment]:
             file_paths.append(path_.decode())
             file_paths_data = file_paths_data[next_end + 1:]
 
-        transforms: list[float] = []
+        transforms: list[list[float]] = []
         for i in range(header[3]):
-            transforms.extend(struct.unpack('<' + 'f' * 16, f.read(64)))
+            transforms.append(list(struct.unpack('<' + 'f' * 16, f.read(64))))
 
         for i in range(header[3]):
             index = struct.unpack('<H', f.read(2))[0]

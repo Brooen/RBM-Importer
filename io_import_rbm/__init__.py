@@ -16,7 +16,8 @@ from bpy.types import Operator
 from importlib import reload
 from bpy.props import StringProperty
 from bpy.types import AddonPreferences
-from io_import_rbm.io import mdic
+from io_import_rbm.io import blo, mdic, stream
+from io_import_rbm.blender import bpy_helpers
 
 # Set the importer path to the same directory as the addon
 addon_path = os.path.dirname(__file__)
@@ -63,11 +64,6 @@ def ensure_shaders_nodegroup():
         print(f"'{shaders_node_name}' node group already exists.")
 
 
-# Utility function to read 32-bit unsigned integers from binary files
-def read_u32(file):
-    return int.from_bytes(file.read(4), 'little')
-
-
 # Function to compute the relative filepath and set it as a custom property
 def set_relative_filepath(obj, filepath, base_path):
     if base_path in filepath:
@@ -89,12 +85,12 @@ def import_model(filepath):
     try:
         with open(filepath, 'rb') as file:
             file.seek(45)
-            renderblockcount = read_u32(file)
+            renderblockcount = stream.read_u32(file)
             print(f"Render Block Count: {renderblockcount}")
             file.seek(file.tell() + 4)
 
             for i in range(renderblockcount):
-                renderblocktype = read_u32(file)
+                renderblocktype = stream.read_u32(file)
                 block_name, import_module_name = RENDER_BLOCK_TYPES.get(renderblocktype, (None, None))
 
                 if block_name:
@@ -155,6 +151,8 @@ class RBMImportOperator(Operator):
     filter_glob: StringProperty(default="*.rbm", options={'HIDDEN'})
 
     def execute(self, context):
+        bpy_helpers.select_scene_collection()
+
         for file in self.files:
             filepath = os.path.join(self.directory, file.name)
             import_model(filepath)
@@ -182,6 +180,8 @@ class MDICImportOperator(Operator):
     )
 
     def execute(self, context):
+        bpy_helpers.select_scene_collection()
+
         preferences = bpy.context.preferences.addons[__name__].preferences
         base_path = preferences.extraction_base_path  # Shared base path
 
@@ -197,7 +197,7 @@ class MDICImportOperator(Operator):
 
         # Process each MDIC file
         for mdic_file_path in mdic_file_paths:
-            mdic.load_mdic(mdic_file_path)
+            mdic.main(mdic_file_path)
 
         return {'FINISHED'}
 
@@ -237,7 +237,7 @@ class BLOImportOperator(Operator):
     )
 
     def execute(self, context):
-        from io_import_rbm.io import blo  # Correct import for blo.py
+        bpy_helpers.select_scene_collection()
 
         # Collect file paths
         if self.recursive:

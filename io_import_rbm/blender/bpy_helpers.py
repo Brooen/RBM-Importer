@@ -49,3 +49,8 @@ def get_object_from_collection(collection: bpy.types.Collection, property_name: 
             return base_object
 
     return None
+
+
+def select_scene_collection() -> None:
+    scene_collection = bpy.context.view_layer.layer_collection
+    bpy.context.view_layer.active_layer_collection = scene_collection
