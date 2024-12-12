@@ -2,12 +2,12 @@ import os
 from mathutils import Matrix
 import hashlib
 
-from io_import_rbm.io.stream import read_u16, read_s16, hex_to_float
+from io_import_rbm.io import stream
 
 
 # Function to decompress normal/tangent data
 def decompress_normal(hex_value):
-    f = hex_to_float(hex_value)
+    f = stream.hex_to_float(hex_value)
     x = ((f / 1.0) % 1.0) * 2.0 - 1.0
     y = ((f / 256.0) % 1.0) * 2.0 - 1.0
     z = ((f / 65536.0) % 1.0) * 2.0 - 1.0
@@ -28,16 +28,16 @@ def clean_material_name(filepath):
 
 # Function to process R16G16B16_SNORM format
 def process_r16g16b16_snorm(file):
-    r = read_s16(file) / 32767.0
-    g = read_s16(file) / 32767.0
-    b = read_s16(file) / 32767.0
+    r = stream.read_s16(file) / 32767.0
+    g = stream.read_s16(file) / 32767.0
+    b = stream.read_s16(file) / 32767.0
     return r, g, b
 
 
 # Function to process R16G16_UNORM format
 def process_r16g16_unorm(file):
-    r = read_u16(file) / 65535.0
-    g = read_u16(file) / -65535.0
+    r = stream.read_u16(file) / 65535.0
+    g = stream.read_u16(file) / -65535.0
     return r, g
 
 
