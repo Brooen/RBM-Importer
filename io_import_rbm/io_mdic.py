@@ -6,6 +6,7 @@ import numpy as np
 import math
 import struct
 from .functions import apply_transformations
+from .io.rbm import load_rbm, get_base_mesh_collection
 
 
 def get_base_path():
@@ -13,8 +14,6 @@ def get_base_path():
     return preferences.extraction_base_path
 
 
-# Dictionary to track already imported meshes
-imported_meshes = {}
 
 
 def get_current_objects():
@@ -22,8 +21,6 @@ def get_current_objects():
 
 
 def import_model(path, matrix_values, collection):
-    global imported_meshes
-
     # Adjust the model file extension and prepend the base path
     base, _ = os.path.splitext(path)
     base_path = get_base_path()  # Dynamically fetch base path
@@ -33,59 +30,43 @@ def import_model(path, matrix_values, collection):
         print(f"Model file not found, skipping: {new_path}")
         return
 
-    # Check if the model's mesh data is already imported
-    if new_path in imported_meshes:
-        # Get the original object
-        mesh_data = imported_meshes[new_path]
-        if mesh_data and mesh_data.users > 0:
-            # Find an existing object that uses this mesh
-            original_obj = next((obj for obj in bpy.data.objects if obj.data == mesh_data), None)
-            if original_obj:
-                # Create a linked duplicate
-                instance_obj = original_obj.copy()
-                instance_obj.data = original_obj.data  # Share the same mesh data
-                instance_obj.animation_data_clear()  # Optional: clear animation data if not needed
-                apply_transformations(instance_obj, matrix_values)
-                instance_obj.scale = (1, 1, 1)
-                collection.objects.link(instance_obj)
-                return
-        else:
-            del imported_meshes[new_path]
+    # Get the "Base mesh" collection
+    base_mesh_collection = get_base_mesh_collection()
 
-    # Split new_path into directory and file name
-    directory, filename = os.path.split(new_path)
-
-    # Track objects before import
-    before_import = get_current_objects()
-
-    # Import the RBM model
-    result = bpy.ops.import_scene.rbm_multi(
-        directory=directory,
-        files=[{"name": filename}],
-        filter_glob="*.rbm"
+    # Check if the base mesh is already imported
+    base_object = next(
+        (obj for obj in base_mesh_collection.objects if obj.get("filepath") == new_path), None
     )
 
-    # Check if the operation was successful
-    if result != {'FINISHED'}:
-        print(f"Failed to import {new_path}")
-        return
+    if base_object is None:
+        # Attempt to load the base mesh
+        base_object = load_rbm(new_path)
+        if base_object is None:
+            print(f"Failed to import base mesh: {new_path}")
+            return
 
-    # Track objects after import
-    after_import = get_current_objects()
-    imported_objects = after_import - before_import
+        # Add metadata to identify the file path
+        base_object["filepath"] = new_path
 
-    for obj in imported_objects:
-        # Only work with mesh objects
-        if obj.type == 'MESH':
-            # Store the mesh data in the dictionary
-            imported_meshes[new_path] = obj.data
-            apply_transformations(obj, matrix_values)
-            obj.scale = (1, 1, 1)
+        # Ensure it's only linked to the base mesh collection
+        base_mesh_collection.objects.link(base_object)
 
-            # Ensure the object is properly linked to the collection
-            collection.objects.link(obj)
-            bpy.context.scene.collection.objects.unlink(obj)
-            break
+    # Check for an existing instance in the target collection
+    instance_object = next(
+        (obj for obj in collection.objects if obj.data == base_object.data), None
+    )
+
+    if instance_object is None:
+        # Create a linked duplicate for the instance
+        instance_object = base_object.copy()
+        instance_object.data = base_object.data  # Share mesh data
+
+        # Apply transformations
+        apply_transformations(instance_object, matrix_values)
+        instance_object.scale = (1, 1, 1)
+
+        # Link the instance to the target collection
+        collection.objects.link(instance_object)
 
 
 def process_mdic(mdic_file_path):

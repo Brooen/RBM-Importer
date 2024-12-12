@@ -82,7 +82,7 @@ def import_rbm(target_path: str) -> bpy.types.Object | None:
 
 def load_rbm(file_path: str, relative: bool = True, import_damage_objects: bool = True) -> bpy.types.Object | None:
     # Substrings to filter for damage-related objects
-    damage_filters = ["debris", "dest", "dst", "dmg", "deformed"]
+    damage_filters = ["debris", "dest", "dst", "dmg", "deformed", "chaos"]
 
     # Check for damage-related substrings in the filename
     if not import_damage_objects and any(substr in file_path.lower() for substr in damage_filters):

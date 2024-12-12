@@ -22,18 +22,18 @@ def load_blo_file(path: str) -> RtpcV01Container | None:
 
 
 def filter_by_rigid_objects(container: RtpcV01Container) -> RtpcWorldObject:
-    rtpc_object: RtpcObject = action.filter_by(container, [
+    rtpc_rigidobject: RtpcObject = action.filter_by(container, [
         filters.RIGID_OBJECT,
     ])
 
-    return rtpc_object
+    return rtpc_rigidobject
 
 
-def create_blender_objects(rtpc_object: RtpcWorldObject, parent_object: bpy.types.Object | None = None, import_damage_objects: bool = True) -> list:
+def create_blender_objects(rtpc_rigidobject: RtpcWorldObject, parent_object: bpy.types.Object | None = None, import_damage_objects: bool = True) -> list:
     import functions
     blender_objects: list = []
 
-    for rigid_object in rtpc_object.containers:
+    for rigid_object in rtpc_rigidobject.containers:
         model_object = load_rbm(rigid_object.filename, import_damage_objects=import_damage_objects)
 
         if model_object is None:
@@ -56,8 +56,8 @@ def main(file_path: str, import_damage_objects: bool = True):
     if container is None:
         return
 
-    rtpc_object = filter_by_rigid_objects(container)
-    blender_objects: list[bpy.types.Object] = create_blender_objects(rtpc_object, import_damage_objects=import_damage_objects)
+    rtpc_rigidobject = filter_by_rigid_objects(container)
+    blender_objects: list[bpy.types.Object] = create_blender_objects(rtpc_rigidobject, import_damage_objects=import_damage_objects)
 
     file_name_wo_ext: str = os.path.basename(file_path)
     file_collection: bpy.types.Collection = create_collection(file_name_wo_ext)
