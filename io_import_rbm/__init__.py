@@ -16,7 +16,7 @@ from bpy.types import Operator
 from importlib import reload
 from bpy.props import StringProperty
 from bpy.types import AddonPreferences
-from io_import_rbm.io import blo, mdic, stream
+from io_import_rbm.io import stream
 from io_import_rbm.blender import bpy_helpers
 
 # Set the importer path to the same directory as the addon
@@ -180,6 +180,8 @@ class MDICImportOperator(Operator):
     )
 
     def execute(self, context):
+        from io_import_rbm.io import mdic
+
         bpy_helpers.select_scene_collection()
 
         preferences = bpy.context.preferences.addons[__name__].preferences
@@ -237,6 +239,8 @@ class BLOImportOperator(Operator):
     )
 
     def execute(self, context):
+        from io_import_rbm.io import blo
+
         bpy_helpers.select_scene_collection()
 
         # Collect file paths
