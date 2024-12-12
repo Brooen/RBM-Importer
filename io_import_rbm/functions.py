@@ -106,16 +106,16 @@ def apply_transformations(obj, matrix_values):
         if obj.parent is not None:
             blender_matrix = obj.parent.matrix_world @ blender_matrix
 
-        obj.matrix_world = blender_matrix
-
-        # Rotate the child by -90° around the X-axis
-        if obj.parent is not None:
+            # Rotate the child by -90° around the X-axis
             x_minus_90_rotation = Matrix.Rotation(-1.5708, 4, 'X')  # -90° in radians
-            obj.matrix_world = obj.matrix_world @ x_minus_90_rotation
+            blender_matrix = blender_matrix @ x_minus_90_rotation
+
+        obj.matrix_world = blender_matrix
 
     except Exception as e:
         print(f"Error applying transformation: {e}"
               f"\nto matrix {matrix_values}")
+
 
 # Calculate the hash of the rest of the paths and renderblocktype
 def hash_paths_and_type(filepaths, renderblocktype):
