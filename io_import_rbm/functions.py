@@ -137,6 +137,11 @@ def apply_transformations(obj, matrix_values, respect_parent: bool = True):
 
         obj.matrix_world = blender_matrix
 
+        # Rotate the child by -90° around the X-axis
+        if obj.parent is not None:
+            x_minus_90_rotation = Matrix.Rotation(-1.5708, 4, 'X')  # -90° in radians
+            obj.matrix_world = obj.matrix_world @ x_minus_90_rotation
+
     except Exception as e:
         print(f"Error applying transformation: {e}"
               f"\nto matrix {matrix_values}")
