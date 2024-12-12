@@ -45,7 +45,7 @@ def import_model(path, matrix_values, collection):
                 instance_obj = original_obj.copy()
                 instance_obj.data = original_obj.data  # Share the same mesh data
                 instance_obj.animation_data_clear()  # Optional: clear animation data if not needed
-                apply_transformations(instance_obj, matrix_values)
+                apply_transformations(instance_obj, matrix_values, center_location=(0, 0, 0))
                 instance_obj.scale = (1, 1, 1)
                 collection.objects.link(instance_obj)
                 return
@@ -79,7 +79,7 @@ def import_model(path, matrix_values, collection):
         if obj.type == 'MESH':
             # Store the mesh data in the dictionary
             imported_meshes[new_path] = obj.data
-            apply_transformations(obj, matrix_values)
+            apply_transformations(obj, matrix_values, center_location=(0, 0, 0))
             obj.scale = (1, 1, 1)
 
             # Ensure the object is properly linked to the collection

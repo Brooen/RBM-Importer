@@ -99,8 +99,13 @@ def transform_uvs(uvs, uv_extent):
     return transformed_uvs
 
 
+
 # Function to apply matrix transforms
-def apply_transformations(obj, matrix_values):
+<<<<<<< Updated upstream
+def apply_transformations(obj, matrix_values, respect_parent: bool = True):
+=======
+def apply_transformations(obj, matrix_values, center_location=None):
+>>>>>>> Stashed changes
     """
     game world matrix is y-up, right-handed, row-major
     """
@@ -113,21 +118,36 @@ def apply_transformations(obj, matrix_values):
     ))
 
     try:
+        # Parse the incoming matrix values into a 4x4 matrix
         game_matrix = Matrix((
             matrix_values[0:4],
             matrix_values[4:8],
             matrix_values[8:12],
             matrix_values[12:16]
         ))
-        blender_matrix = game_matrix
+        
+        # Convert to Blender's column-major format
+        blender_matrix = game_matrix.transposed()
 
-        # Convert to column-major
-        blender_matrix = blender_matrix.transposed()
-
-        # change basis
+        # Change basis from Y-up to Z-up
         blender_matrix = y_up_to_z_up @ blender_matrix
 
+<<<<<<< Updated upstream
+        if respect_parent:
+            if obj.parent is not None:
+                blender_matrix = obj.parent.matrix_world @ blender_matrix
+
+=======
+        if center_location:
+            # Adjust the matrix to center around the specified location
+            center_vector = Vector(center_location)
+            translation = Matrix.Translation(center_vector)
+            blender_matrix = translation @ blender_matrix
+
+        # Apply the matrix to the object's world matrix
+>>>>>>> Stashed changes
         obj.matrix_world = blender_matrix
+
     except Exception as e:
         print(f"Error applying transformation: {e}"
               f"\nto matrix {matrix_values}")

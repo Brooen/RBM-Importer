@@ -38,6 +38,9 @@ RENDER_BLOCK_TYPES = {
     0x3b630e6d: ("Landmark", "import_landmark"),
     0xd79884c6: ("VegetationFoliage", "import_vegetation_foliage"),
     0x2ee0f4a9: ("GeneralSimple", "import_general_simple")
+    0x35bf53d5: ("GeneralSimple3", "import_general_simple3"),
+    0x9d6e332a: ("CharacterClothes9", "import_character_clothes9"),
+    0x626f5e3b: ("CharacterSkin6", "import_character_skin6")
 }
 
 
