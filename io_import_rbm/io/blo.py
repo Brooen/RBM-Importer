@@ -13,10 +13,10 @@ from io_import_rbm.blender import bpy_helpers
 from ApexFormat.RTPC.V01.Class import (RtpcV01Container)
 
 
-def load_blo_file(path: str) -> RtpcV01Container | None:
-    container: RtpcV01Container | None = action.load_from_path(path)
+def load_blo_file(file_path: str) -> RtpcV01Container | None:
+    container: RtpcV01Container | None = action.load_from_path(file_path)
     if container is None:
-        development.log(f"failed to load container from '{path}'")
+        development.log(f"failed to load container from '{file_path}'")
         return None
 
     return container
