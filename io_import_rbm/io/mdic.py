@@ -49,7 +49,7 @@ def load_mdic_file(file_path: str) -> list[MdicFragment]:
 
             fragment: MdicFragment = MdicFragment()
             fragment.file_path = file_paths[index]
-            fragment.world: mathutils.Matrix = cs_to.bpy_matrix(transforms[index])
+            fragment.world: mathutils.Matrix = cs_to.bpy_matrix(transforms[i])
 
             fragments.append(fragment)
 
