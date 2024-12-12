@@ -1,35 +1,8 @@
 import os
-import struct
-from mathutils import Matrix, Euler
-import numpy as np
+from mathutils import Matrix
 import hashlib
 
-
-# Helper functions for reading various binary data types
-def read_u16(file):
-    return int.from_bytes(file.read(2), 'little')
-
-
-def read_s16(file):
-    return int.from_bytes(file.read(2), 'little', signed=True)
-
-
-def read_u32(file):
-    return int.from_bytes(file.read(4), 'little')
-
-
-def read_float(file):
-    return struct.unpack('f', file.read(4))[0]
-
-
-def read_string(file, length):
-    return file.read(length).decode('utf-8')
-
-
-# Function to convert a hex value to float using IEEE-754 format
-def hex_to_float(hex_value):
-    packed = struct.pack('>I', hex_value)
-    return struct.unpack('>f', packed)[0]
+from io_import_rbm.io.stream import read_u16, read_s16, hex_to_float
 
 
 # Function to decompress normal/tangent data
@@ -100,7 +73,7 @@ def transform_uvs(uvs, uv_extent):
 
 
 # Function to apply matrix transforms
-def apply_transformations(obj, matrix_values, respect_parent: bool = True):
+def apply_transformations(obj, matrix_values):
     """
     game world matrix is y-up, right-handed, row-major
     """
@@ -130,10 +103,8 @@ def apply_transformations(obj, matrix_values, respect_parent: bool = True):
         # Change basis from Y-up to Z-up
         blender_matrix = y_up_to_z_up @ blender_matrix
 
-
-        if respect_parent:
-            if obj.parent is not None:
-                blender_matrix = obj.parent.matrix_world @ blender_matrix
+        if obj.parent is not None:
+            blender_matrix = obj.parent.matrix_world @ blender_matrix
 
         obj.matrix_world = blender_matrix
 
@@ -145,7 +116,7 @@ def apply_transformations(obj, matrix_values, respect_parent: bool = True):
     except Exception as e:
         print(f"Error applying transformation: {e}"
               f"\nto matrix {matrix_values}")
-              
+
 # Calculate the hash of the rest of the paths and renderblocktype
 def hash_paths_and_type(filepaths, renderblocktype):
     hasher = hashlib.sha256()

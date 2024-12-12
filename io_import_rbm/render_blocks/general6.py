@@ -1,8 +1,8 @@
-import struct
 import math
 import bpy
-import os
-from functions import *
+from os import path
+from io_import_rbm import functions
+from io_import_rbm.io.stream import read_u16, read_u32, read_float, read_string
 
 #This RenderBlock needs:
 
@@ -15,7 +15,7 @@ def process_block(filepath, file, imported_objects):
     print(f"Processing General6 block from {filepath}")
 
     # Set up the model name and clean it
-    model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
+    model_name = functions.clean_filename(path.splitext(path.basename(filepath))[0])
 
     # Skip 73 bytes
     file.seek(file.tell() + 13)
@@ -45,17 +45,17 @@ def process_block(filepath, file, imported_objects):
     filepaths = []
     for i in range(filepath_slot_count):
         path_length = read_u32(file)
-        path = read_string(file, path_length)
-        filepaths.append(path)
-        print(f"Filepath {i+1}: {path}")
+        file_path = read_string(file, path_length)
+        filepaths.append(file_path)
+        print(f"Filepath {i+1}: {file_path}")
 
     # Define filepath0 and hashed representation
     renderblocktype = "General6"  
     if filepaths:
         # Clean filepath0 first
-        cleaned_filepath0 = clean_material_name(os.path.basename(filepaths[0]))
+        cleaned_filepath0 = functions.clean_material_name(path.basename(filepaths[0]))
         # Add hashed suffix
-        hashed_suffix = hash_paths_and_type(filepaths, renderblocktype)
+        hashed_suffix = functions.hash_paths_and_type(filepaths, renderblocktype)
         filepath0 = f"{cleaned_filepath0} - id:{hashed_suffix}"
         print(f"Modified filepath0: {filepath0}")
 
@@ -78,7 +78,7 @@ def process_block(filepath, file, imported_objects):
     
     # Read vertex blocks with AmfFormat_R16G16B16_SNORM
     for i in range(vertcount):
-        x, y, z = process_r16g16b16_snorm(file)
+        x, y, z = functions.process_r16g16b16_snorm(file)
         x *= scale
         y *= scale
         z *= scale
@@ -91,15 +91,15 @@ def process_block(filepath, file, imported_objects):
     
     # Read vertdata blocks with AmfFormat_R16G16_UNORM for UVs
     for i in range(vertcount2):
-        uv1 = process_r16g16_unorm(file)
-        uv2 = process_r16g16_unorm(file)
+        uv1 = functions.process_r16g16_unorm(file)
+        uv2 = functions.process_r16g16_unorm(file)
         normal_hex = read_u32(file)
         tangent_hex = read_u32(file)
         color = read_float(file)
         
         # Decompress the normal and tangent
-        normal_dec = decompress_normal(normal_hex)
-        tangent_dec = decompress_normal(tangent_hex)
+        normal_dec = functions.decompress_normal(normal_hex)
+        tangent_dec = functions.decompress_normal(tangent_hex)
         
         uv1_coords.append(uv1)
         uv2_coords.append(uv2)
@@ -107,8 +107,8 @@ def process_block(filepath, file, imported_objects):
         tangents.append(tangent_dec)
 
     # Transform UVs using extents
-    uv1_coords = transform_uvs(uv1_coords, UV1Extent)
-    uv2_coords = transform_uvs(uv2_coords, UV2Extent)
+    uv1_coords = functions.transform_uvs(uv1_coords, UV1Extent)
+    uv2_coords = functions.transform_uvs(uv2_coords, UV2Extent)
           
     # Read face count
     face_count = read_u32(file)
@@ -208,8 +208,8 @@ def process_block(filepath, file, imported_objects):
                 continue
 
             # Construct the full file path
-            texture_full_path = os.path.join(extraction_base_path, texture_path.replace(".ddsc", texture_extension))
-            texture_name = os.path.basename(texture_full_path)  # Extract the file name
+            texture_full_path = path.join(extraction_base_path, texture_path.replace(".ddsc", texture_extension))
+            texture_name = path.basename(texture_full_path)  # Extract the file name
 
             print(f"Processing Texture {texture_number} at: {texture_full_path}")
 
@@ -219,7 +219,7 @@ def process_block(filepath, file, imported_objects):
                 print(f"Reusing existing image: {texture_name}")
                 image = existing_image
             else:
-                if os.path.exists(texture_full_path):
+                if path.exists(texture_full_path):
                     try:
                         # Load the image
                         image = bpy.data.images.load(texture_full_path)

@@ -1,16 +1,17 @@
-import struct
 import math
 import bpy
-import os
-from functions import *
+from os import path
+from io_import_rbm import functions
+from io_import_rbm.io.stream import read_u16, read_u32, read_float, read_string
 
-#This RenderBlock needs: 
+
+#This RenderBlock needs:
 
 def process_block(filepath, file, imported_objects):
     print(f"Processing WaterHull block from {filepath}")
 
     # Set up the model name and clean it
-    model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
+    model_name = functions.clean_filename(path.splitext(path.basename(filepath))[0])
 
     # Skip 21 bytes
     file.seek(file.tell() + 21)

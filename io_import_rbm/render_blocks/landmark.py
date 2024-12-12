@@ -1,8 +1,9 @@
-import struct
 import math
 import bpy
-import os
-from functions import *
+from os import path
+from io_import_rbm import functions
+from io_import_rbm.io.stream import read_u16, read_u32, read_float, read_string
+
 
 #This RenderBlock needs: Materials, UV extent/transforms, Scale, Flags
 
@@ -10,7 +11,7 @@ def process_block(filepath, file, imported_objects):
     print(f"Processing Landmark block from {filepath}")
 
     # Set up the model name and clean it
-    model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
+    model_name = functions.clean_filename(path.splitext(path.basename(filepath))[0])
 
     # Skip 89 bytes
     file.seek(file.tell() + 89)
@@ -23,17 +24,17 @@ def process_block(filepath, file, imported_objects):
     filepaths = []
     for i in range(filepath_slot_count):
         path_length = read_u32(file)
-        path = read_string(file, path_length)
-        filepaths.append(path)
-        print(f"Filepath {i+1}: {path}")
+        file_path = read_string(file, path_length)
+        filepaths.append(file_path)
+        print(f"Filepath {i+1}: {file_path}")
 
     # Define filepath0 and hashed representation
     renderblocktype = "Landmark"  
     if filepaths:
         # Clean filepath0 first
-        cleaned_filepath0 = clean_material_name(os.path.basename(filepaths[0]))
+        cleaned_filepath0 = functions.clean_material_name(path.basename(filepaths[0]))
         # Add hashed suffix
-        hashed_suffix = hash_paths_and_type(filepaths, renderblocktype)
+        hashed_suffix = functions.hash_paths_and_type(filepaths, renderblocktype)
         filepath0 = f"{cleaned_filepath0} - id:{hashed_suffix}"
         print(f"Modified filepath0: {filepath0}")
 
@@ -54,7 +55,7 @@ def process_block(filepath, file, imported_objects):
     
     # Read vertex blocks with AmfFormat_R16G16B16_SNORM
     for i in range(vertcount):
-        x, y, z = process_r16g16b16_snorm(file)
+        x, y, z = functions.process_r16g16b16_snorm(file)
         unspecified = read_u16(file)
         vertices.append((x, y, z))
     
@@ -64,7 +65,7 @@ def process_block(filepath, file, imported_objects):
     
     # Read vertdata blocks with AmfFormat_R16G16_UNORM for UVs
     for i in range(vertcount2):
-        uv1 = process_r16g16_unorm(file)
+        uv1 = functions.process_r16g16_unorm(file)
         color = read_float(file)
         
         
