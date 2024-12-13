@@ -40,7 +40,7 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
     material_name = f"{static_decal.name} - id:{hash_value}"
 
     print(f"decal added with material: {material_name}")
-    
+
     # Check if the material already exists
     material = bpy.data.materials.get(material_name)
     if not material:
@@ -93,7 +93,7 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
 
                 # Apply offset and tile values
                 mapping_node.inputs['Location'].default_value[0] = mapping_params["offset_u"]
-                mapping_node.inputs['Location'].default_value[1] = -mapping_params["offset_v"]  # Invert V offset
+                mapping_node.inputs['Location'].default_value[1] = mapping_params["offset_v"]  # Invert V offset
                 mapping_node.inputs['Scale'].default_value[0] = mapping_params["tile_u"]
                 mapping_node.inputs['Scale'].default_value[1] = mapping_params["tile_v"]
 
