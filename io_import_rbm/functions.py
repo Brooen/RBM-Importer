@@ -124,3 +124,39 @@ def hash_paths_and_type(filepaths, renderblocktype):
     combined_data = ''.join(filepaths[1:]) + str(renderblocktype)
     hasher.update(combined_data.encode('utf-8'))
     return hasher.hexdigest()[:8]  # Shorten hash for readability
+
+# Function to load the ddsc.db mapping
+def load_ddsc_flags(ddsc_db_path):
+    ddsc_flags = {}
+    try:
+        with open(ddsc_db_path, 'rb') as f:
+            while True:
+                # Read until the first ASCII space (end of file path)
+                filepath_bytes = bytearray()
+                while (byte := f.read(1)) != b' ':
+                    if not byte:  # EOF
+                        return ddsc_flags
+                    filepath_bytes.extend(byte)
+
+                # Decode the file path as ASCII
+                filepath = filepath_bytes.decode('ascii')
+
+                # Read the flag as 16-bit little-endian
+                flag_bytes = f.read(2)
+                if len(flag_bytes) < 2:  # EOF or corrupted data
+                    break
+                flag = int.from_bytes(flag_bytes, byteorder='little')
+
+                # Skip the following ASCII space after the flag
+                space = f.read(1)
+                if space != b' ':
+                    print(f"Unexpected character after flag: {space}")
+                    break
+
+                # Store the path and flag in the dictionary
+                ddsc_flags[filepath] = flag
+    except FileNotFoundError:
+        print(f"Error: ddsc.db file not found at {ddsc_db_path}")
+    except Exception as e:
+        print(f"Error reading ddsc.db: {e}")
+    return ddsc_flags

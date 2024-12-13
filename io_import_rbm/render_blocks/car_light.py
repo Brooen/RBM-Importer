@@ -1,7 +1,9 @@
 import math
+import os
 import bpy
 from os import path
 from io_import_rbm import functions
+from io_import_rbm.functions import load_ddsc_flags
 from io_import_rbm.io.stream import read_u16, read_u32, read_float, read_string
 
 
@@ -159,6 +161,11 @@ def process_block(filepath, file, imported_objects):
         addon_prefs = bpy.context.preferences.addons[addon_name].preferences
         extraction_base_path = addon_prefs.extraction_base_path
         texture_extension = addon_prefs.texture_extension
+        # Automatically locate ddsc.db relative to this script
+        current_dir = os.path.dirname(__file__)  # Directory of the current script
+        parent_dir = os.path.abspath(os.path.join(current_dir, ".."))  # Parent directory
+        ddsc_db_path = os.path.join(parent_dir, "ddsc.db")  # Path to ddsc.db
+        ddsc_flags = load_ddsc_flags(ddsc_db_path)
 
         print(f"Texture Base Path: {extraction_base_path}")
         print(f"Texture Extension: {texture_extension}")
@@ -167,26 +174,23 @@ def process_block(filepath, file, imported_objects):
         TEXTURE_SETTINGS = {
             "uv1": [1, 2, 3, 4, 5, 6], #base
             "uv2": [], #ao
-            "srgb": [1],
-            "non_color": [2, 3, 4, 5, 6],
         }
 
         input_index = 0
-        
-        for texture_number, texture_path in enumerate(filepaths, start=1):  # Start at 1 for Blender indexing
-            # Skip empty file paths
+
+        for texture_number, texture_path in enumerate(filepaths, start=1):
             if not texture_path.strip():
                 print(f"Skipping empty texture path")
-                input_index += 2  # Skip both color and alpha inputs
+                input_index += 2
                 continue
 
             # Construct the full file path
             texture_full_path = path.join(extraction_base_path, texture_path.replace(".ddsc", texture_extension))
-            texture_name = path.basename(texture_full_path)  # Extract the file name
+            texture_name = path.basename(texture_full_path)
 
             print(f"Processing Texture {texture_number} at: {texture_full_path}")
 
-            # Check if the image is already loaded
+            # Load or reuse the image
             existing_image = bpy.data.images.get(texture_name)
             if existing_image:
                 print(f"Reusing existing image: {texture_name}")
@@ -194,18 +198,31 @@ def process_block(filepath, file, imported_objects):
             else:
                 if path.exists(texture_full_path):
                     try:
-                        # Load the image
                         image = bpy.data.images.load(texture_full_path)
-                        image.alpha_mode = 'CHANNEL_PACKED'  # Set channel-packed alpha
+                        image.alpha_mode = 'CHANNEL_PACKED'
                         print(f"Loaded new image: {texture_name}")
                     except Exception as e:
                         print(f"Error loading texture {texture_full_path}: {e}")
-                        input_index += 2  # Skip both color and alpha inputs
+                        input_index += 2
                         continue
                 else:
                     print(f"Texture file not found: {texture_full_path}")
-                    input_index += 2  # Skip both color and alpha inputs
+                    input_index += 2
                     continue
+
+            # Debug: Print the texture path being looked up in the database
+            print(f"Looking up texture path in ddsc.db: {texture_path}")
+
+            # Determine color space based on flag
+            flag = ddsc_flags.get(texture_path, 0)
+            print(f"Flag value for {texture_path}: {flag:#06x}")  # Print flag as hex (e.g., 0x0008)
+
+            if flag & 0x8:  # Check if the sRGB bit is set
+                image.colorspace_settings.name = "sRGB"
+                print(f"Texture {texture_number}: Color space set to sRGB")
+            else:
+                image.colorspace_settings.name = "Non-Color"
+                print(f"Texture {texture_number}: Color space set to Non-Color")
 
             # Create texture node
             tex_node = nodes.new("ShaderNodeTexImage")

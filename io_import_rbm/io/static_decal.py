@@ -2,6 +2,7 @@ import bpy
 import math
 import os
 import hashlib
+from io_import_rbm.functions import load_ddsc_flags
 import mathutils
 from py_atl.rtpc_v01.containers import RtpcStaticDecalObject
 
@@ -10,6 +11,10 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
     preferences = bpy.context.preferences.addons["io_import_rbm"].preferences
     extraction_base_path = preferences.extraction_base_path
     texture_extension = preferences.texture_extension
+
+    # Load the ddsc.db file
+    ddsc_db_path = os.path.join(os.path.dirname(__file__), "..", "ddsc.db")
+    ddsc_flags = load_ddsc_flags(ddsc_db_path)
 
     def load_texture(texture_name):
         """Try loading the texture by replacing either '.ddsc' or '.tga'."""
@@ -39,7 +44,7 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
     hash_value = hashlib.sha256(hash_input).hexdigest()[:8]  # Use the first 8 characters of the hash
     material_name = f"{static_decal.name} - id:{hash_value}"
 
-    print(f"decal added with material: {material_name}")
+    print(f"Decal added with material: {material_name}")
 
     # Check if the material already exists
     material = bpy.data.materials.get(material_name)
@@ -74,15 +79,30 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
 
         def setup_texture(texture_name, mapping_params, color_input, alpha_input):
             """Sets up a texture with mapping and connections."""
+            # Normalize the texture name to use the `.ddsc` extension for database lookup
+            normalized_name = texture_name.rsplit(".", 1)[0] + ".ddsc"
+
+            # Load the texture
             image = load_texture(texture_name)
             if image:
-                # Set alpha mode for the image
+
                 image.alpha_mode = 'CHANNEL_PACKED'
+                
+                # Look up the flag in ddsc_flags
+                flag = ddsc_flags.get(normalized_name, 0)
+                print(f"Loaded texture '{texture_name}' (normalized to '{normalized_name}') with flag: {flag:#06x}")
+
+                # Determine color space
+                if flag & 0x8:
+                    image.colorspace_settings.name = "sRGB"
+                else:
+                    image.colorspace_settings.name = "Non-Color"
 
                 # Add texture node
                 texture_node = nodes.new(type='ShaderNodeTexImage')
                 texture_node.image = image
                 texture_node.location = (-400, 200 if color_input == "diffuse_texture" else -200)
+
                 links.new(texture_node.outputs["Color"], decal_node.inputs[color_input])
                 links.new(texture_node.outputs["Alpha"], decal_node.inputs[alpha_input])
 
@@ -93,7 +113,7 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
 
                 # Apply offset and tile values
                 mapping_node.inputs['Location'].default_value[0] = mapping_params["offset_u"]
-                mapping_node.inputs['Location'].default_value[1] = mapping_params["offset_v"]  # Invert V offset
+                mapping_node.inputs['Location'].default_value[1] = mapping_params["offset_v"]
                 mapping_node.inputs['Scale'].default_value[0] = mapping_params["tile_u"]
                 mapping_node.inputs['Scale'].default_value[1] = mapping_params["tile_v"]
 
@@ -140,7 +160,5 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
 
     # Assign the material to the plane object
     plane_object.data.materials.append(material)
-
-
 
     return plane_object
