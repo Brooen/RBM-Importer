@@ -7,7 +7,7 @@ A tool that imports Just Cause 3's RBM files into Blender
 ## Supported RBMs
 - GeneralMK3
 - CarPaint14
-- CarLight - Needs materials
+- CarLight
 - Window
 - BavariumShield
 - WaterHull
@@ -20,10 +20,11 @@ A tool that imports Just Cause 3's RBM files into Blender
 ## MDIC Importing
 Supports all MDIC files, MDIC files store static enviroment models.
 ## BLO Importing
-(NOT YET IMPLEMENTED)
-Supports all BLO files, BLO files store props, lights, and decals.
-## Contributers
-- EonZeNx - Help with mapping out files and figuring out MDIC transforms
+Supports all BLO files, BLO files store props, lights(NOT YET IMPLEMENTED), and decals.
+
+Requires the installation of [py_atl](https://github.com/EonZeNx/py-atl "py_atl")
+## Contributors
+- EonZeNx - creating py_atl, and making RTPC importing work properly
 - PredatorCZ - ApexLib for referencing and also mapping out MDIC binaries
 - SK83RJOSH - Helping with mesh normals
 - Aaron Kirkham - JC Model Renderer source helped with figuring out shading data, mostly flags and texture slots
