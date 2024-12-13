@@ -6,7 +6,7 @@ from py_atl.rtpc_v01 import action, filters
 from py_atl.rtpc_v01.containers import RtpcObject, RtpcWorldObject, RtpcRigidObject, RtpcStaticDecalObject
 import bpy
 
-from io_import_rbm.io import rbm
+from io_import_rbm.io import rbm, static_decal
 from io_import_rbm.blender import bpy_helpers
 
 # these may produce expected warnings
@@ -45,9 +45,7 @@ def create_rtpc_blender_objects(rtpc_world_object: RtpcWorldObject, parent_objec
         if isinstance(rtpc_world_object, RtpcRigidObject):
             model_object = rbm.load_rbm(world_object.filename)
         elif isinstance(rtpc_world_object, RtpcStaticDecalObject):
-            # todo: make a new file called static_decal, call load_static_decal here
-            # model_object = rbm.load_rbm(world_object.filename)
-            ...
+            model_object = static_decal.load_static_decal()
 
         if model_object is None:
             continue
