@@ -45,7 +45,7 @@ def create_rtpc_blender_objects(rtpc_world_object: RtpcWorldObject, parent_objec
         if isinstance(world_object, RtpcRigidObject):
             model_object = rbm.load_rbm(world_object.filename)
         elif isinstance(world_object, RtpcStaticDecalObject):
-            model_object = static_decal.load_static_decal()
+            model_object = static_decal.load_static_decal(world_object)
             # todo: static_decal function that takes an RtpcStaticDecalObject and sets up all the fancy blender stuff
         else:
             development.log(f"unsupported rtpc_world_object: {type(rtpc_world_object)}")

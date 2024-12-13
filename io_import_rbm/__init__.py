@@ -332,7 +332,7 @@ def unregister():
     bpy.utils.unregister_class(RBMImporterPreferences)  # Remove preferences class
 
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
-    bpy.utils.register_class(MDICImportOperator)
+    bpy.utils.unregister_class(MDICImportOperator)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import_mdic)
 
     bpy.utils.unregister_class(BLOImportOperator)  # Unregister BLO operator
