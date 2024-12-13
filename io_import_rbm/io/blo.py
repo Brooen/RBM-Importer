@@ -3,10 +3,10 @@ from os import path
 
 from py_atl import development
 from py_atl.rtpc_v01 import action, filters
-from py_atl.rtpc_v01.containers import RtpcObject, RtpcWorldObject, RtpcRigidObject, RtpcStaticDecalObject
+from py_atl.rtpc_v01.containers import RtpcObject, RtpcWorldObject, RtpcRigidObject, RtpcStaticDecalObject, RtpcDynamicLightObject
 import bpy
 
-from io_import_rbm.io import rbm, static_decal
+from io_import_rbm.io import rbm, static_decal, dynamic_light
 from io_import_rbm.blender import bpy_helpers
 
 # these may produce expected warnings
@@ -26,6 +26,7 @@ def filter_by_supported(container: RtpcV01Container) -> RtpcObject:
     rtpc_world_objects: RtpcObject = action.filter_by(container, [
         filters.RIGID_OBJECT,
         filters.STATIC_DECAL_OBJECT,
+        filters.DYNAMIC_LIGHT_OBJECT
     ])
 
     return rtpc_world_objects
@@ -46,7 +47,9 @@ def create_rtpc_blender_objects(rtpc_world_object: RtpcWorldObject, parent_objec
             model_object = rbm.load_rbm(world_object.filename)
         elif isinstance(world_object, RtpcStaticDecalObject):
             model_object = static_decal.load_static_decal(world_object)
-            # todo: static_decal function that takes an RtpcStaticDecalObject and sets up all the fancy blender stuff
+        elif isinstance(world_object, RtpcDynamicLightObject):
+            model_object = dynamic_light.load_dynamic_light(world_object)
+
         else:
             development.log(f"unsupported rtpc_world_object: {type(rtpc_world_object)}")
             continue
