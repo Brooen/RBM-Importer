@@ -239,6 +239,8 @@ class BLOImportOperator(Operator):
     )
 
     def execute(self, context):
+
+        ensure_shaders_nodegroup()
         from io_import_rbm.io import blo
 
         bpy_helpers.select_scene_collection()

@@ -29,6 +29,13 @@ def filter_by_rigid_objects(container: RtpcV01Container) -> RtpcWorldObject:
 
     return rtpc_rigidobject
 
+def filter_by_decal(container: RtpcV01Container) -> RtpcWorldObject:
+    rtpc_decal: RtpcObject = action.filter_by(container, [
+        filters.STATIC_DECAL_OBJECT,
+    ])
+
+    return rtpc_decal
+
 
 def create_rtpc_blender_objects(rtpc_rigidobject: RtpcWorldObject, parent_object: bpy.types.Object | None = None, load_damage_models: bool = True) -> list:
     import functions
@@ -51,6 +58,26 @@ def create_rtpc_blender_objects(rtpc_rigidobject: RtpcWorldObject, parent_object
 
     return blender_objects
 
+def create_rtpc_blender_decals(rtpc_decal: RtpcWorldObject, parent_object: bpy.types.Object | None = None) -> list:
+    import functions
+    blender_objects: list = []
+
+    for decal in rtpc_decal.containers:
+        # Create a new plane for the decal
+        bpy.ops.mesh.primitive_plane_add(size=1)
+        decal_object = bpy.context.active_object
+
+        # Set the name and parent
+        decal_object.name = decal.name if decal.name is not None else decal.name_hash
+        decal_object.parent = parent_object
+
+        # Apply transformations from the decal's world matrix
+        functions.apply_transformations(decal_object, decal.world)
+
+        # Append the plane to the list
+        blender_objects.append(decal_object)
+
+    return blender_objects
 
 def main(file_path: str, import_damage_objects: bool = True):
     if not path.exists(file_path):
@@ -63,6 +90,8 @@ def main(file_path: str, import_damage_objects: bool = True):
 
     rtpc_rigidobject = filter_by_rigid_objects(container)
     blender_objects: list[bpy.types.Object] = create_rtpc_blender_objects(rtpc_rigidobject, load_damage_models=import_damage_objects)
+    rtpc_decal = filter_by_decal(container)
+    blender_objects.extend(create_rtpc_blender_objects(rtpc_decal))
 
     file_name: str = path.basename(file_path)
     file_name_wo_ext: str = path.splitext(file_name)[0]
