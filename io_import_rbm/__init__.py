@@ -1,10 +1,10 @@
 bl_info = {
     "name": "RBM Importer",
-    "blender": (4, 2, 3),
+    "blender": (4, 3, 1),
     "category": "Import-Export",
     "description": "Imports RBM Files to blender",
     "author": "Brooen",
-    "version": (1, 4, 0),
+    "version": (1, 4, 4),
 }
 
 import importlib
