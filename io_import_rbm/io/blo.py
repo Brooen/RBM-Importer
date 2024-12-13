@@ -22,8 +22,8 @@ def load_blo_file(file_path: str) -> RtpcV01Container | None:
     return container
 
 
-def filter_by_supported(container: RtpcV01Container) -> RtpcWorldObject:
-    rtpc_world_objects: RtpcWorldObject = action.filter_by(container, [
+def filter_by_supported(container: RtpcV01Container) -> RtpcObject:
+    rtpc_world_objects: RtpcObject = action.filter_by(container, [
         filters.RIGID_OBJECT,
         filters.STATIC_DECAL_OBJECT,
     ])
@@ -42,10 +42,14 @@ def create_rtpc_blender_objects(rtpc_world_object: RtpcWorldObject, parent_objec
                 continue
 
         model_object: bpy.types.Object | None = None
-        if isinstance(rtpc_world_object, RtpcRigidObject):
+        if isinstance(world_object, RtpcRigidObject):
             model_object = rbm.load_rbm(world_object.filename)
-        elif isinstance(rtpc_world_object, RtpcStaticDecalObject):
+        elif isinstance(world_object, RtpcStaticDecalObject):
             model_object = static_decal.load_static_decal()
+            # todo: static_decal function that takes an RtpcStaticDecalObject and sets up all the fancy blender stuff
+        else:
+            development.log(f"unsupported rtpc_world_object: {type(rtpc_world_object)}")
+            continue
 
         if model_object is None:
             continue
@@ -69,7 +73,7 @@ def main(file_path: str, import_damage_objects: bool = True):
     if container is None:
         return
 
-    rtpc_world_objects = filter_by_supported(container)
+    rtpc_world_objects: RtpcObject = filter_by_supported(container)
     blender_objects: list[bpy.types.Object] = create_rtpc_blender_objects(rtpc_world_objects, load_damage_models=import_damage_objects)
 
     file_name: str = path.basename(file_path)
