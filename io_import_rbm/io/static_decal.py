@@ -28,21 +28,14 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
                 return bpy.data.images.load(texture_path)
         return None
 
-    # Create a plane
-    bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0))
-    plane_object = bpy.context.object  # Get the newly created object
-
-    # Rotate the plane 90 degrees on the X-axis
-    plane_object.rotation_euler[0] = math.radians(-90)
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-
     # Generate a unique material name using a truncated hash of parameters and textures
     hash_input = f"{static_decal.is_distance_field_stencil}{static_decal.alphamask_source_channel}" \
                  f"{static_decal.alpha_min}{static_decal.alpha_max}{static_decal.Emissive}" \
                  f"{static_decal.color.x}{static_decal.color.y}{static_decal.color.z}" \
-                 f"{static_decal.diffuse_texture}{static_decal.alphamask_texture}".encode()
+                 f"{static_decal.diffuse_texture}{static_decal.name}{static_decal.alphamask_texture}".encode()
     hash_value = hashlib.sha256(hash_input).hexdigest()[:8]  # Use the first 8 characters of the hash
     material_name = f"{static_decal.name} - id:{hash_value}"
+    mesh_name = f"Static Decal - id:{hash_value}"
 
     print(f"Decal added with material: {material_name}")
 
@@ -157,8 +150,25 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
             color_euler.z / 255.0,
             1.0  # Alpha is set to 1
         )
+    # Check if a mesh with the same name as the material exists
+    existing_mesh = bpy.data.meshes.get(mesh_name)
+
+    if existing_mesh:
+        # If it exists, create an instance
+        plane_object = bpy.data.objects.new(mesh_name, existing_mesh)
+        bpy.context.collection.objects.link(plane_object)
+    else:
+        # Create a new plane and assign it the generated mesh name
+        bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0))
+        plane_object = bpy.context.object  # Get the newly created object
+        plane_object.data.name = mesh_name  # Assign the mesh name
+
+        # Rotate the plane 90 degrees on the X-axis and apply transformations
+        plane_object.rotation_euler[0] = math.radians(-90)
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
     # Assign the material to the plane object
-    plane_object.data.materials.append(material)
+    if not any(mat == material for mat in plane_object.data.materials):
+        plane_object.data.materials.append(material)
 
     return plane_object

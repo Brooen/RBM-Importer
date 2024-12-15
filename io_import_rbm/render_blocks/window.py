@@ -126,6 +126,7 @@ def process_block(filepath, file, imported_objects):
         mesh.materials.append(material)
 
         material.use_nodes = True
+        material.blend_method = 'BLEND'
         nodes = material.node_tree.nodes
         links = material.node_tree.links
 
