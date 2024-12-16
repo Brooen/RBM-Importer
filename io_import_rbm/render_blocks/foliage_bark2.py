@@ -3,7 +3,7 @@ import os
 import bpy
 from os import path
 from io_import_rbm import functions
-from io_import_rbm.functions import load_ddsc_flags
+from io_import_rbm.functions import *
 from io_import_rbm.io.stream import read_u16, read_u32, read_float, read_string
 
 #This RenderBlock needs: Flags? i really dont know if this is right

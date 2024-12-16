@@ -15,6 +15,7 @@ from bpy.props import CollectionProperty
 from bpy.types import Operator
 from importlib import reload
 from bpy.props import StringProperty
+from bpy.props import BoolProperty
 from bpy.types import AddonPreferences
 from io_import_rbm.io import stream
 from io_import_rbm.blender import bpy_helpers
@@ -150,17 +151,54 @@ class RBMImportOperator(Operator):
     directory: StringProperty(subtype='DIR_PATH')
     filter_glob: StringProperty(default="*.rbm", options={'HIDDEN'})
 
+    import_lod1: BoolProperty(name="Import LOD 1", default=True)
+    import_lod2: BoolProperty(name="Import LOD 2", default=False)
+    import_lod3: BoolProperty(name="Import LOD 3", default=False)
+    import_lod4: BoolProperty(name="Import LOD 4", default=False)
+    import_lod5: BoolProperty(name="Import LOD 5", default=False)
+
     def execute(self, context):
         bpy_helpers.select_scene_collection()
 
+        # Collect selected LODs
+        selected_lods = []
+        if self.import_lod1:
+            selected_lods.append("lod1")
+        if self.import_lod2:
+            selected_lods.append("lod2")
+        if self.import_lod3:
+            selected_lods.append("lod3")
+        if self.import_lod4:
+            selected_lods.append("lod4")
+        if self.import_lod5:
+            selected_lods.append("lod5")
+
         for file in self.files:
             filepath = os.path.join(self.directory, file.name)
-            import_model(filepath)
+
+            # Debug: Print the file being processed
+            print(f"Processing file: {file.name}")
+
+            # Check if the file matches any selected LOD
+            if any(f"_{lod}" in file.name.lower() for lod in selected_lods):
+                print(f"Importing file: {file.name}")  # Debug: Confirm match
+                import_model(filepath)
+            else:
+                print(f"Skipped file: {file.name}")  # Debug: Confirm no match
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "import_lod1")
+        layout.prop(self, "import_lod2")
+        layout.prop(self, "import_lod3")
+        layout.prop(self, "import_lod4")
+        layout.prop(self, "import_lod5")
 
 
 class MDICImportOperator(Operator):
@@ -333,7 +371,7 @@ def unregister():
 
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.utils.unregister_class(MDICImportOperator)
-    bpy.types.TOPBAR_MT_file_import.append(menu_func_import_mdic)
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import_mdic)
 
     bpy.utils.unregister_class(BLOImportOperator)  # Unregister BLO operator
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import_blo)  # Remove BLO from menu
