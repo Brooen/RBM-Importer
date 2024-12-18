@@ -20,7 +20,7 @@ A tool that imports Just Cause 3's RBM files into Blender
 ## MDIC Importing
 Supports all MDIC files, MDIC files store static enviroment models.
 ## BLO Importing
-Supports all BLO files, BLO files store props, lights(NOT YET IMPLEMENTED), and decals.
+Supports all BLO files, BLO files store props, lights, and decals.
 
 Requires the installation of [py_atl](https://github.com/EonZeNx/py-atl "py_atl")
 ## Contributors
