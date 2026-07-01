@@ -2,7 +2,7 @@ import bpy
 import math
 import os
 import hashlib
-from io_import_rbm.functions import load_ddsc_flags
+from io_import_rbm.functions import load_ddsc_flags, resolve_texture_filepath
 import mathutils
 from py_atl.rtpc_v01.containers import RtpcStaticDecalObject
 
@@ -19,7 +19,7 @@ def load_static_decal(static_decal: RtpcStaticDecalObject):
     def load_texture(texture_name):
         """Try loading the texture by replacing either '.ddsc' or '.tga'."""
         if texture_name.endswith(".ddsc") or texture_name.endswith(".tga") or texture_name.endswith(".dds"):
-            texture_path = os.path.join(extraction_base_path, texture_name.rsplit(".", 1)[0] + texture_extension)
+            texture_path = resolve_texture_filepath(os.path.join(extraction_base_path, texture_name.rsplit(".", 1)[0] + texture_extension))
             if os.path.exists(texture_path):
                 # Check if image is already loaded
                 existing_image = bpy.data.images.get(os.path.basename(texture_path))

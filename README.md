@@ -14,9 +14,14 @@ A tool that imports Just Cause 3's RBM files into Blender
 - General6
 - FoliageBark2
 - General3
-- Layered - Needs materials, UVFix, and ScaleFix
-- Landmark - Needs materials, UVFix, and ScaleFix
+- Layered
+- Landmark
 - VegetationFoliage
+- CharacterClothes
+- CharacterSkin
+- GeneralSimple
+- GeneralSimple3
+- Road
 ## MDIC Importing
 Supports all MDIC files, MDIC files store static enviroment models.
 ## BLO Importing
@@ -24,6 +29,7 @@ Supports all BLO files, BLO files store props, lights, and decals.
 
 Requires the installation of [py_atl](https://github.com/EonZeNx/py-atl "py_atl")
 ## Contributors
+- LukeJC - AVTeX code for ddsc importing
 - EonZeNx - creating py_atl, and making RTPC importing work properly
 - PredatorCZ - ApexLib for referencing and also mapping out MDIC binaries
 - SK83RJOSH - Helping with mesh normals

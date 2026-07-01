@@ -6,43 +6,41 @@ from io_import_rbm import functions
 from io_import_rbm.functions import *
 from io_import_rbm.io.stream import read_u16, read_u32, read_float, read_string
 
-#This RenderBlock needs:
+#This RenderBlock needs: Flags???
 
 # Flag definitions
-DISABLE_BACKFACE_CULLING   = 0x1
-USE_WRINlKE_MAP            = 0x2
-EIGHT_BONES                = 0x4
-USE_FEATURE_MAP            = 0x8
-USE_ALPHA_MASK             = 0x10
+IS_SKINNED           = 0x20
 
 def process_block(filepath, file, imported_objects):
-    print(f"Processing CharacterSkin6 block from {filepath}")
+    print(f"Processing Road block from {filepath}")
 
     # Set up the model name and clean it
-    model_name = clean_filename(os.path.splitext(os.path.basename(filepath))[0])
+    model_name = functions.clean_filename(path.splitext(path.basename(filepath))[0])
 
-    # Skip 41 bytes
-    file.seek(file.tell() + 1)
+    # Skip 73 bytes
+    file.seek(file.tell() + 9)
+    
+    # Read scale factor and UV extents
+    scale = read_float(file)
+    UV1Extent = (read_float(file), read_float(file))
+    UV2Extent = (read_float(file), read_float(file))
+
+    print(f"Scale Factor: {scale}")
+    print(f"UV1Extent: {UV1Extent}")
+    print(f"UV2Extent: {UV2Extent}")
     
     # Read flags
     flags = read_u32(file)
     print(f"Flags: {flags} ({bin(flags)})")
     
-    # Read scale factor and UV extents
-    scale = read_float(file)
-    UV1Extent = (1, 1)
-    UV2Extent = (read_float(file), read_float(file))
+    # After reading the flags, skip 16 bytes
+    file.seek(file.tell() + 220)
     
-    # Skip 12 bytes
-    file.seek(file.tell() + 40)
-
-    print(f"Scale Factor: {scale}")
-    print(f"UV2Extent: {UV2Extent}")
-
     # Read u32 filepath slot count
     filepath_slot_count = read_u32(file)
     print(f"Filepath Slot Count: {filepath_slot_count}")
     
+    # Read each filepath
     filepaths = []
     for i in range(filepath_slot_count):
         path_length = read_u32(file)
@@ -51,19 +49,19 @@ def process_block(filepath, file, imported_objects):
         print(f"Filepath {i+1}: {file_path}")
 
     # Define filepath0 and hashed representation
-    renderblocktype = "CharacterSkin6" 
+    renderblocktype = "Road"  
     if filepaths:
         # Clean filepath0 first
-        cleaned_filepath0 = clean_material_name(os.path.basename(filepaths[0]))
+        cleaned_filepath0 = functions.clean_material_name(path.basename(filepaths[0]))
         # Add hashed suffix
-        hashed_suffix = hash_paths_and_type(filepaths, renderblocktype)
+        hashed_suffix = functions.hash_paths_and_type(filepaths, renderblocktype)
         filepath0 = f"{cleaned_filepath0} - id:{hashed_suffix}"
         print(f"Modified filepath0: {filepath0}")
 
     # Use filepath0 for the material name
     material_name = filepath0
     print(f"Material Name: {material_name}")
-        
+    
     # Skip 16 bytes
     file.seek(file.tell() + 16)
     
@@ -79,40 +77,41 @@ def process_block(filepath, file, imported_objects):
     
     # Read vertex blocks with AmfFormat_R16G16B16_SNORM
     for i in range(vertcount):
-        x, y, z = process_r16g16b16_snorm(file)
+        x, y, z = functions.process_r16g16b16_snorm(file)
         x *= scale
         y *= scale
         z *= scale
-        
-        unspecified = read_u16(file)
-        bone_weight = read_u32(file)
-        bone_index = read_u32(file)
-        uv1 = process_r16g16_unorm(file)
-        tangent_hex = read_u32(file)
-        if flags & USE_WRINlKE_MAP:
-            read_u32(file)  # dunno
-        tangent_dec = decompress_normal(tangent_hex)
-        vertices.append((x, y, z))       
-        uv1_coords.append(uv1)
-        uv2_coords.append(uv1)
-        tangents.append(tangent_dec)
-        
-    # Skip 12 bytes
-    file.seek(file.tell() + 12)
-   
+        file.seek(file.tell() + 2) 
+        if flags & IS_SKINNED:
+            file.seek(file.tell() + 8)       
+        vertices.append((x, y, z))
+
+    
     # Vertex data section
     vertcount2 = read_u32(file)
     print(f"VertData Count: {vertcount2}")
     
     # Read vertdata blocks with AmfFormat_R16G16_UNORM for UVs
     for i in range(vertcount2):
-        file.seek(file.tell() + 2)
-
+        uv1 = functions.process_r16g16_unorm(file)
+        uv2 = functions.process_r16g16_unorm(file)
+        normal_hex = read_u32(file)
+        tangent_hex = read_u32(file)
+        color = read_float(file)
+        
+        # Decompress the normal and tangent
+        normal_dec = functions.decompress_normal(normal_hex)
+        tangent_dec = functions.decompress_normal(tangent_hex)
+        
+        uv1_coords.append(uv1)
+        uv2_coords.append(uv2)
+        normals.append(normal_dec)
+        tangents.append(tangent_dec)
 
     # Transform UVs using extents
-    uv1_coords = transform_uvs(uv1_coords, UV1Extent)
-    uv2_coords = transform_uvs(uv2_coords, UV2Extent)
-    
+    uv1_coords = functions.transform_uvs(uv1_coords, UV1Extent)
+    uv2_coords = functions.transform_uvs(uv2_coords, UV2Extent)
+          
     # Read face count
     face_count = read_u32(file)
     print(f"Face Count: {face_count}")
@@ -168,9 +167,9 @@ def process_block(filepath, file, imported_objects):
 
         # Create and configure the node group
         shader_node = nodes.new("ShaderNodeGroup")
-        node_group = bpy.data.node_groups.get("CharacterSkin6")
+        node_group = bpy.data.node_groups.get("Road")
         if not node_group:
-            print("Node group 'CharacterSkin6' not found.")
+            print("Node group 'Road' not found.")
         else:
             shader_node.node_tree = node_group
             shader_node.location = (0, 0)
@@ -181,7 +180,7 @@ def process_block(filepath, file, imported_objects):
             if input_index < len(shader_node.inputs):
                 if shader_node.inputs[input_index].type == "BOOLEAN":
                     shader_node.inputs[input_index].default_value = bool(int(flag))
-        
+
         # Set textures
         
         # Fetch texture base path and extension from addon preferences
@@ -200,11 +199,11 @@ def process_block(filepath, file, imported_objects):
 
         # Define texture settings (matching Blender's 1-based indexing)
         TEXTURE_SETTINGS = {
-            "uv1": [1, 2, 3, 7, 8, 9], 
-            "uv2": [4, 5],
+            "uv1": [1, 2, 3, 4, 5, 6, 7, 8, 9], #base
+            #"uv2": [4], #ao
         }
 
-        input_index = 5  # Start at input index 83 to skip the first 83 inputs (this number is booleans+floats)
+        input_index = 0  # Start at input index 3 to skip the first 3 inputs (this number is booleans)
 
         for texture_number, texture_path in enumerate(filepaths, start=1):
             if not texture_path.strip():
@@ -269,7 +268,7 @@ def process_block(filepath, file, imported_objects):
                 uv_node.uv_map = "UVMap_1"  # Default UV map
                 print(f"Texture {texture_number}: Defaulted to UV1")
 
-            uv_node.location = (-500, -100 * (input_index))  # Subtract 80 for location offset
+            uv_node.location = (-500, -100 * (input_index))
 
             # Connect UV map to texture
             links.new(uv_node.outputs["UV"], tex_node.inputs["Vector"])

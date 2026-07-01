@@ -4,7 +4,7 @@ bl_info = {
     "category": "Import-Export",
     "description": "Imports RBM Files to blender",
     "author": "Brooen",
-    "version": (1, 4, 5),
+    "version": (1, 4, 0),
 }
 
 import importlib
@@ -43,6 +43,7 @@ RENDER_BLOCK_TYPES = {
     0xd79884c6: ("VegetationFoliage",   "io_import_rbm.render_blocks.vegetation_foliage"),
     0xdb948bf1: ("CarLight",            "io_import_rbm.render_blocks.car_light"),
     0xf99c72a1: ("WaterHull",           "io_import_rbm.render_blocks.water_hull"),
+    0x566DCE92: ("Road",                "io_import_rbm.render_blocks.road"),
 }
 
 
@@ -143,8 +144,7 @@ def combine_imported_objects(objects):
 # Operator to handle the import functionality
 class RBMImportOperator(Operator):
     bl_idname = "import_scene.rbm_multi"
-    bl_label = "Import Multiple RBM Models"
-    bl_description = "Import multiple RBM model files"
+    bl_label = "Import RBM Files"
     bl_options = {'REGISTER', 'UNDO'}
 
     files: CollectionProperty(type=bpy.types.PropertyGroup)
@@ -157,37 +157,6 @@ class RBMImportOperator(Operator):
     import_lod4: BoolProperty(name="Import LOD 4", default=False)
     import_lod5: BoolProperty(name="Import LOD 5", default=False)
 
-    def execute(self, context):
-        bpy_helpers.select_scene_collection()
-
-        # Collect selected LODs
-        selected_lods = []
-        if self.import_lod1:
-            selected_lods.append("lod1")
-        if self.import_lod2:
-            selected_lods.append("lod2")
-        if self.import_lod3:
-            selected_lods.append("lod3")
-        if self.import_lod4:
-            selected_lods.append("lod4")
-        if self.import_lod5:
-            selected_lods.append("lod5")
-
-        for file in self.files:
-            filepath = os.path.join(self.directory, file.name)
-
-            # Debug: Print the file being processed
-            print(f"Processing file: {file.name}")
-
-            # Check if the file matches any selected LOD
-            if any(f"_{lod}" in file.name.lower() for lod in selected_lods):
-                print(f"Importing file: {file.name}")  # Debug: Confirm match
-                import_model(filepath)
-            else:
-                print(f"Skipped file: {file.name}")  # Debug: Confirm no match
-
-        return {'FINISHED'}
-
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -199,6 +168,31 @@ class RBMImportOperator(Operator):
         layout.prop(self, "import_lod3")
         layout.prop(self, "import_lod4")
         layout.prop(self, "import_lod5")
+
+    def execute(self, context):
+        bpy_helpers.select_scene_collection()
+
+        selected_lods = [
+            lod for lod, enabled in (
+                ("lod1", self.import_lod1),
+                ("lod2", self.import_lod2),
+                ("lod3", self.import_lod3),
+                ("lod4", self.import_lod4),
+                ("lod5", self.import_lod5),
+            )
+            if enabled
+        ]
+
+        for file in self.files:
+            filepath = os.path.join(self.directory, file.name)
+
+            if not selected_lods or any(
+                f"_{lod}" in file.name.lower()
+                for lod in selected_lods
+            ):
+                import_model(filepath)
+
+        return {'FINISHED'}
 
 
 class MDICImportOperator(Operator):

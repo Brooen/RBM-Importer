@@ -185,7 +185,7 @@ def process_block(filepath, file, imported_objects):
                 continue
 
             # Construct the full file path
-            texture_full_path = path.join(extraction_base_path, texture_path.replace(".ddsc", texture_extension))
+            texture_full_path = functions.resolve_texture_filepath(path.join(extraction_base_path, texture_path.replace(".ddsc", texture_extension)))
             texture_name = path.basename(texture_full_path)
 
             print(f"Processing Texture {texture_number} at: {texture_full_path}")
