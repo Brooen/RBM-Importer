@@ -4,6 +4,8 @@ A tool that imports Just Cause 3's RBM files into Blender
 [Latest Release](https://github.com/Brooen/RBM-Importer/releases/latest "Latest Release")
 
 [Latest Test Build](https://github.com/Brooen/RBM-Importer/raw/refs/heads/main/io_import_rbm.zip "Latest Test Build")
+## Wiki
+https://github.com/Brooen/RBM-Importer/wiki
 ## Supported RBMs
 - GeneralMK3
 - CarPaint14
