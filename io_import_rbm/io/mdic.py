@@ -57,7 +57,7 @@ def load_mdic_file(file_path: str) -> list[MdicFragment]:
 
 
 def create_mdic_blender_objects(mdic_fragments: list[MdicFragment], load_damage_models: bool = True) -> list[bpy.types.Object]:
-    import functions
+    from io_import_rbm import functions
     blender_objects: list[bpy.types.Object] = []
 
     for mdic_fragment in mdic_fragments:

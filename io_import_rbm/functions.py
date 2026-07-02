@@ -1,4 +1,5 @@
 import os
+import math
 from mathutils import Matrix
 import hashlib
 import struct
@@ -15,6 +16,46 @@ def decompress_normal(hex_value):
     z = ((f / 65536.0) % 1.0) * 2.0 - 1.0
     w = 1.0 if f >= 0 else -1.0
     return x, y, z, w
+
+
+# Function to apply the game's per-vertex normals as Blender custom split normals.
+# `normals` holds (x, y, z[, w]) tuples indexed by vertex, as produced by
+# decompress_normal. Replaces the old "Smooth by Angle" approximation so shading
+# matches the game's authored normals. (Tangents can't be set directly in
+# Blender; it derives them from UVMap_1 + these normals, which reproduces the
+# game's tangent space since both come from the same source data.)
+def apply_custom_normals(mesh, normals):
+    # Smooth-shade all polygons; custom normals need smooth faces to display
+    # and this doubles as the fallback when normal data is missing.
+    for poly in mesh.polygons:
+        poly.use_smooth = True
+
+    if not normals or len(normals) < len(mesh.vertices):
+        print(f"Custom normals unavailable or incomplete "
+              f"({len(normals) if normals else 0}/{len(mesh.vertices)}); "
+              f"leaving smooth shading.")
+        return
+
+    vertex_normals = []
+    for i in range(len(mesh.vertices)):
+        n = normals[i]
+        x, y, z = n[0], n[1], n[2]
+        length = math.sqrt(x * x + y * y + z * z)
+        if length < 1e-6:
+            # Zero vector tells Blender to keep the auto-computed normal
+            vertex_normals.append((0.0, 0.0, 0.0))
+        else:
+            vertex_normals.append((x / length, y / length, z / length))
+
+    # Blender <= 4.0 only displays custom normals with auto smooth enabled;
+    # the attribute no longer exists in 4.1+.
+    if hasattr(mesh, "use_auto_smooth"):
+        mesh.use_auto_smooth = True
+
+    try:
+        mesh.normals_split_custom_set_from_vertices(vertex_normals)
+    except Exception as e:
+        print(f"Failed to apply custom normals: {e}")
 
 
 # Function to remove `_lod#` from filename
@@ -91,7 +132,16 @@ def scale_uvs(uvs):
 # Function to apply matrix transforms
 def apply_transformations(obj, matrix_values):
     """
-    game world matrix is y-up, right-handed, row-major
+    game world matrix is y-up, right-handed, row-major.
+
+    Root objects carry an absolute game-space transform, which is converted
+    to Blender's Z-up space. Child objects (nested .blo containers) carry a
+    PARENT-RELATIVE transform expressed in the parent's local (game-axis)
+    frame; the parent's Blender matrix already contains the single Y-up ->
+    Z-up conversion, so the child's local matrix is composed under the
+    parent raw - converting it again (the old behaviour) conjugated the
+    matrix and swung children around their parent instead of inheriting the
+    parent's rotation about its origin.
     """
 
     y_up_to_z_up = Matrix((
@@ -112,21 +162,29 @@ def apply_transformations(obj, matrix_values):
                 matrix_values[12:16]
             ))
 
-        blender_matrix = game_matrix
         # Convert to Blender's column-major format
-        blender_matrix = game_matrix.transposed()
+        local_matrix = game_matrix.transposed()
 
-        # Change basis from Y-up to Z-up
-        blender_matrix = y_up_to_z_up @ blender_matrix
+        # Blender lights emit along their local -Z axis, but the game's
+        # lights emit along local -Y (verified against .blo spot lights:
+        # none aim above the horizon along -Y). Post-rotate light objects
+        # about their own X axis so the beam matches the game; this spins
+        # the light in place and never moves its origin.
+        if getattr(obj, "type", None) == 'LIGHT':
+            local_matrix = local_matrix @ Matrix.Rotation(math.radians(-90), 4, 'X')
 
         if obj.parent is not None:
-            blender_matrix = obj.parent.matrix_world @ blender_matrix
-
-            # Rotate the child by -90° around the X-axis
-            x_minus_90_rotation = Matrix.Rotation(-1.5708, 4, 'X')  # -90° in radians
-            blender_matrix = blender_matrix @ x_minus_90_rotation
-
-        obj.matrix_world = blender_matrix
+            # Compose the raw parent-relative matrix under the parent.
+            # Setting matrix_basis (with an identity parent inverse) lets
+            # Blender apply the parent's full transform itself, so the child
+            # inherits the parent's rotation around the parent's origin.
+            # This also avoids reading obj.parent.matrix_world, which can be
+            # stale mid-import before a depsgraph update.
+            obj.matrix_parent_inverse = Matrix.Identity(4)
+            obj.matrix_basis = local_matrix
+        else:
+            # Root object: change basis from Y-up to Z-up
+            obj.matrix_world = y_up_to_z_up @ local_matrix
 
     except Exception as e:
         print(f"Error applying transformation: {e}"

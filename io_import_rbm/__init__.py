@@ -4,7 +4,7 @@ bl_info = {
     "category": "Import-Export",
     "description": "Imports RBM Files to blender",
     "author": "Brooen",
-    "version": (1, 4, 0),
+    "version": (1, 4, 1),
 }
 
 import importlib
@@ -20,10 +20,8 @@ from bpy.types import AddonPreferences
 from io_import_rbm.io import stream
 from io_import_rbm.blender import bpy_helpers
 
-# Set the importer path to the same directory as the addon
+# Addon directory (used to locate bundled assets like shaders.blend)
 addon_path = os.path.dirname(__file__)
-if addon_path not in sys.path:
-    sys.path.append(addon_path)
 
 # Dictionary to map render block types to their names and import functions
 RENDER_BLOCK_TYPES = {

@@ -140,15 +140,8 @@ def process_block(filepath, file, imported_objects):
         uv_layer1.data[loop.index].uv = uv1_coords[loop.vertex_index]
         uv_layer2.data[loop.index].uv = uv2_coords[loop.vertex_index]
     
-    # Add "Smooth by Angle" modifier
-    modifier = mesh_obj.modifiers.new(name="Smooth by Angle", type='EDGE_SPLIT')
-    modifier.split_angle = math.radians(30)  # Angle in radians
-    modifier.use_edge_angle = True
-    modifier.use_edge_sharp = False
-    
-    # Assign smooth shading
-    for poly in mesh.polygons:
-        poly.use_smooth = True
+    # Apply the game's custom normals as split normals
+    functions.apply_custom_normals(mesh, normals)
     
     # Create a material with the adjusted name and link it
     material = bpy.data.materials.get(material_name)

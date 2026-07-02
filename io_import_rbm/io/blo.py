@@ -34,7 +34,7 @@ def filter_by_supported(container: RtpcV01Container) -> RtpcObject:
 
 def create_rtpc_blender_objects(rtpc_world_object: RtpcWorldObject, parent_object: bpy.types.Object | None = None,
                                 load_damage_models: bool = True) -> list:
-    import functions
+    from io_import_rbm import functions
     blender_objects: list = []
 
     for world_object in rtpc_world_object.containers:
